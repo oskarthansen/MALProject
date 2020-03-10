@@ -8,5 +8,7 @@ import os
 import sys
 sys.path.insert(0, os.getcwd())
 print(sys.path)
-from lib.DataLoad import load_data
-data = load_data("")
+from DataLoad import load_data
+data = load_data("Speed_Dating_data.csv")
+
+
