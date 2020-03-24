@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Modules to be ignored
+lib/DataLoad.py
+
 # C extensions
 *.so
 
