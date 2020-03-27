@@ -8,5 +8,10 @@ def scaleGroup(group, scalar):
     #group["sum"] = group.sum(axis=1)
     summ = group.sum(axis=1)
     for i in group.columns:
-        group[i] = (group[i]/summ)*100
+        group[i] = (group[i]/summ)*scalar
     return group
+
+def replaceGroup(data, newGroup):
+    import pandas as pd
+    data = data.drop(newGroup.columns)
+    return pd.concat([data, newGroup], axis=1)

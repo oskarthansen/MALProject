@@ -5,6 +5,7 @@ Created on Tue Mar  3 14:31:27 2020
 @author: valde
 """
 from DataLoad import load_data
+from dataCleanUp import scaleGroup, replaceGroup
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
@@ -43,55 +44,67 @@ data = data.drop('go_out', axis=1)
 data = pd.concat([data, go_out], axis=1)
 
 
-
-
 #%%Scale values from wave 1-5 and 10-21 to fit values to 1-10 scale for given metrics
-def scaleGroup(group, upperBound, scalar):
-    maxValue = 100/len(group.columns)
-    scaledGroup = group.divide(maxValue) * scalar
-    return scaledGroup.clip(upper=upperBound)
 #Get all waves
-wavesToScale = data[((data['wave'] >= 1) & (data['wave'] <= 5)) | ((data['wave'] >= 10) & (data['wave'] <= 21))]
+wavesToScale = data[((data['wave'] >= 6) & (data['wave'] <= 9))]
 allScaledColumns = pd.DataFrame(wavesToScale['wave'])
 
 round_1_1 = ['attr1_1', "sinc1_1", "intel1_1", "fun1_1", "amb1_1", "shar1_1"]
 columnsToScale = wavesToScale[round_1_1]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 10, 5)], axis=1)
+allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
 round_4_1 = ['attr4_1', "sinc4_1", "intel4_1", "fun4_1", "amb4_1", "shar4_1"]
 columnsToScale = wavesToScale[round_4_1]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 10, 5)], axis=1)
+allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
 round_2_1 = ['attr2_1', "sinc2_1", "intel2_1", "fun2_1", "amb2_1", "shar2_1"]
 columnsToScale = wavesToScale[round_2_1]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 10, 5)], axis=1)
+allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
 round_1_2 = ['attr1_2', "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]
 columnsToScale = wavesToScale[round_1_2]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 10, 5)], axis=1)
+allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
 #data = pd.concat([allScaledColumns['wave'] >= 1 & (allScaledColumns['wave'] <= 5), [data['wave'] >= 6 & data['wave'] >= 9], allScaledColumns['wave'] >= 10 & allScaledColumns['wave'] <= 21], axis=0)
 
 
 round_4_2 = ["attr4_2", "sinc4_2", "intel4_2", "fun4_2", "amb4_2", "shar4_2"]
 columnsToScale = data[round_4_2]
-scaledColumns = scaleGroup(columnsToScale, 10, 5)
+scaledColumns = scaleGroup(columnsToScale, 100)
 data = data[data.columns.drop(round_4_2)]
 data = pd.concat([data, scaledColumns], axis=1)
 
 round_2_2 = ["attr2_2", "sinc2_2", "intel2_2", "fun2_2", "amb2_2", "shar2_2"]
 columnsToScale = data[round_2_2]
-scaledColumns = scaleGroup(columnsToScale, 10, 5)
+scaledColumns = scaleGroup(columnsToScale, 100)
 data = data[data.columns.drop(round_2_2)]
 data = pd.concat([data, scaledColumns], axis=1)
 
 round_7_2 = ['attr7_2', "sinc7_2", "intel7_2", "fun7_2", "amb7_2", "shar7_2"]
 columnsToScale = data[round_7_2]
-scaledColumns = scaleGroup(columnsToScale, 10, 5)
+scaledColumns = scaleGroup(columnsToScale, 100)
 data = data[data.columns.drop(round_7_2)]
 data = pd.concat([data, scaledColumns], axis=1)
 
+attr_other = ["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o", "shar_o"]
 
+round_3_1 = data[list(data.filter(regex="3_1"))]
+data= replaceGroup(data, round_3_1)
+
+round_5_1 = data[list(data.filter(regex="5_1"))]
+data = replaceGroup(data, round_5_1)
+
+round_3_s = data[list(data.filter(regex="3_s"))]
+data = replaceGroup(data, round_3_s)
+
+round_3_2 = data[list(data.filter(regex="3_2"))]
+data = replaceGroup(data, round_3_2)
+
+round_5_2 = data[list(data.filter(regex="5_2"))]
+data = replaceGroup(data, round_5_2)
+
+score = data[["attr", "sinc", "intel", "fun", "amb", "shar"]]
+data = replaceGroup(data, score)
 
 #columnsToScale = wavesToScale[['attr1_1', "sinc1_1",]]
 
