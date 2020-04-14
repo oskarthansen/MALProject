@@ -27,6 +27,22 @@ data = pd.concat([data, race_1hot], axis=1)
 goal_1hot = pd.get_dummies(data['goal'], prefix='goal')
 data = data.drop('goal', axis=1)
 data = pd.concat([data, goal_1hot], axis=1)
+#Check to see if similar goal
+same_goal_column = pd.DataFrame(0, index=np.arange(len(data.index)), columns=["same_goal"])
+
+for i, row in data.iterrows():
+    goal = row.filter(regex="goal")
+    pid = row["pid"]
+    pid_rows = data["iid"] == pid
+    pid_rows = data[pid_rows]
+    if len(pid_rows) > 0:
+        pid_rows = pid_rows.iloc[1,:] #get first row only
+        goal_o = pid_rows.filter(regex="goal")
+        same_goal = sum(((goal == goal_o) & (goal == 1)))
+        same_goal_column.at[i, "same_goal"] = same_goal
+data = pd.concat([data, same_goal_column], axis=1)
+
+
 
 career_1hot = pd.get_dummies(data['career_c'], prefix='career')
 data = data.drop('career_c', axis=1)
@@ -111,14 +127,13 @@ data = replaceGroup(data, score_o)
 #%%
 
 
+
+
 #%% Set NaN to median values
 from sklearn.impute import SimpleImputer
 imputer = SimpleImputer(strategy='median')
 imputer.fit(data)
 data = pd.DataFrame(imputer.transform(data), columns=data.columns, index=data.index)
-
-
-
 
 
 
@@ -154,7 +169,7 @@ data = pd.concat([data, pd.DataFrame(lookfor_vs_datescore_diffs)], axis=1)
 
 corr = data.corr()
 corr_dec = corr['dec'].sort_values(ascending=False)
-
+corr_match = corr["match"].sort_values(ascending=False)
 
 
 
