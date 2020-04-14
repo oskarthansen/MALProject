@@ -4,14 +4,18 @@ Created on Tue Mar  3 14:31:27 2020
 
 @author: valde
 """
-from lib.DataLoad import load_data
+from DataLoad import load_data
+from dataCleanUp import scaleGroup, replaceGroup
 import pandas as pd
 import numpy as np
-from sklearn.decomposition import PCA
-raw_data = load_data("Speed_Dating_Data.csv")
-data = raw_data.drop(['iid', 'id', 'idg', 'partner', 'pid', 'position', 'positin1', 'career', 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
+raw_data = load_data()
+data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
 #data = data[data.columns.drop(list(data.filter(regex='_3')))]
 #%%One hot encoding
+data = data[data.columns.drop(list(data.filter(regex="_3")))]
+
+data.drop(["gender", "race_o"], axis=1)
+
 field_1hot = pd.get_dummies(data['field_cd'], prefix= 'field') #Encode fields
 data = data.drop('field_cd', axis=1)
 data = pd.concat([data, field_1hot], axis=1)
@@ -40,65 +44,72 @@ data = pd.concat([data, go_out], axis=1)
 
 
 #%%Scale values from wave 1-5 and 10-21 to fit values to 1-10 scale for given metrics
-def scaleGroup(group, upperBound, scalar):
-    maxValue = 100/len(group.columns)
-    scaledGroup = group.divide(maxValue) * scalar
-    return scaledGroup.clip(upper=upperBound)
 #Get all waves
-wavesToScale = data[((data['wave'] >= 1) & (data['wave'] <= 5)) | ((data['wave'] >= 10) & (data['wave'] <= 21))]
-allScaledColumns = pd.DataFrame()
+wavesToScale = data[((data['wave'] >= 6) & (data['wave'] <= 9))]
+allScaledColumns = pd.DataFrame(wavesToScale['wave'])
 
 round_1_1 = ['attr1_1', "sinc1_1", "intel1_1", "fun1_1", "amb1_1", "shar1_1"]
 columnsToScale = wavesToScale[round_1_1]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 10, 5)], axis=1)
+allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
 round_4_1 = ['attr4_1', "sinc4_1", "intel4_1", "fun4_1", "amb4_1", "shar4_1"]
 columnsToScale = wavesToScale[round_4_1]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 10, 5)], axis=1)
+allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
 round_2_1 = ['attr2_1', "sinc2_1", "intel2_1", "fun2_1", "amb2_1", "shar2_1"]
 columnsToScale = wavesToScale[round_2_1]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 10, 5)], axis=1)
+allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
 round_1_2 = ['attr1_2', "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]
 columnsToScale = wavesToScale[round_1_2]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 10, 5)], axis=1)
+allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
+#data = pd.concat([allScaledColumns['wave'] >= 1 & (allScaledColumns['wave'] <= 5), [data['wave'] >= 6 & data['wave'] >= 9], allScaledColumns['wave'] >= 10 & allScaledColumns['wave'] <= 21], axis=0)
 
 
 round_4_2 = ["attr4_2", "sinc4_2", "intel4_2", "fun4_2", "amb4_2", "shar4_2"]
 columnsToScale = data[round_4_2]
-scaledColumns = scaleGroup(columnsToScale, 10, 5)
-data.drop(round_4_2)
+scaledColumns = scaleGroup(columnsToScale, 100)
+data = data[data.columns.drop(round_4_2)]
 data = pd.concat([data, scaledColumns], axis=1)
 
 round_2_2 = ["attr2_2", "sinc2_2", "intel2_2", "fun2_2", "amb2_2", "shar2_2"]
 columnsToScale = data[round_2_2]
-scaledColumns = scaleGroup(columnsToScale, 10, 5)
-data.drop(round_2_2)
+scaledColumns = scaleGroup(columnsToScale, 100)
+data = data[data.columns.drop(round_2_2)]
 data = pd.concat([data, scaledColumns], axis=1)
 
 round_7_2 = ['attr7_2', "sinc7_2", "intel7_2", "fun7_2", "amb7_2", "shar7_2"]
 columnsToScale = data[round_7_2]
-scaledColumns = scaleGroup(columnsToScale, 10, 5)
-data.drop(round_7_2)
+scaledColumns = scaleGroup(columnsToScale, 100)
+data = data[data.columns.drop(round_7_2)]
 data = pd.concat([data, scaledColumns], axis=1)
 
-round_7_3 = ["attr7_3", "sinc7_3", "intel7_3", "fun7_3", "amb7_3", "shar7_3"]
-columnsToScale = data[round_7_3]
-scaledColumns = scaleGroup(columnsToScale, 10, 5)
-data.drop(round_7_3)
-data = pd.concat([data, scaledColumns], axis=1)
+attr_other = ["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o", "shar_o"]
 
-round_4_3 = ["attr4_3", "sinc4_3", "intel4_3", "fun4_3", "amb4_3", "shar4_3"]
-columnsToScale = data[round_4_3]
-scaledColumns = scaleGroup(columnsToScale, 10, 5)
-data.drop(round_4_3)
-data = pd.concat([data, scaledColumns], axis=1)
+#%%Scale to 100 point scale 
+round_3_1 = data[list(data.filter(regex="3_1"))]
+round_3_1 = scaleGroup(round_3_1, 100)
+data= replaceGroup(data, round_3_1)
 
+round_5_1 = data[list(data.filter(regex="5_1"))]
+round_5_1 = scaleGroup(round_5_1, 100)
+data = replaceGroup(data, round_5_1)
 
+round_3_s = data[list(data.filter(regex="3_s"))]
+round_3_s = scaleGroup(round_3_s, 100)
+data = replaceGroup(data, round_3_s)
 
-#columnsToScale = wavesToScale[['attr1_1', "sinc1_1",]]
+score = data[["attr", "sinc", "intel", "fun", "amb", "shar"]]
+score = scaleGroup(score, 100)
+data = replaceGroup(data, score)
+
+score_o = data[["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o", "shar_o"]]
+score_o = scaleGroup(score_o, 100)
+data = replaceGroup(data, score_o)
+
+#%%
+
 
 #%% Set NaN to median values
 from sklearn.impute import SimpleImputer
@@ -109,10 +120,41 @@ data = pd.DataFrame(imputer.transform(data), columns=data.columns, index=data.in
 
 
 
+
+
 #%%Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
+self_look_for_during_date = data[["attr1_s", "sinc1_s", "intel1_s", "fun1_s", "amb1_s", "shar1_s"]]
+#self_look_for_after_date_1 = data[["attr1_2", "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]]
+
 date_score = data[['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
-diff =  self_look_for_before.values - date_score
+
+diff_before =  self_look_for_before.values - date_score
+diff_during = self_look_for_during_date.values - date_score
+#diff_after_1 = self_look_for_after_date_1.values - date_score
+
+def calcLength(row):
+    return (row.values ** 2).mean() ** .5
+
+lookfor_before_vs_datescore_diff = diff_before.apply(calcLength, axis=1)
+lookfor_during_vs_datescore_diff = diff_during.apply(calcLength, axis=1)
+#lookfor_after1_vs_datescore_diff = diff_after_1.apply(calcLength, axis=1)
+
+#Invert scaling
+lookfor_before_vs_datescore_diff = 100 - lookfor_before_vs_datescore_diff
+lookfor_during_vs_datescore_diff = 100 - lookfor_during_vs_datescore_diff
+#lookfor_after1_vs_datescore_diff = 100 - lookfor_after1_vs_datescore_diff
+
+lookfor_before_vs_datescore_diff.name = "lookfor_before_vs_datescore_diff"
+lookfor_during_vs_datescore_diff.name = "lookfor_during_vs_datescore_diff"
+#lookfor_after1_vs_datescore_diff.name = "lookfor_after1_vs_datescore_diff"
+
+lookfor_vs_datescore_diffs = pd.concat([lookfor_before_vs_datescore_diff, lookfor_during_vs_datescore_diff], axis=1)
+data = pd.concat([data, pd.DataFrame(lookfor_vs_datescore_diffs)], axis=1)
+
+corr = data.corr()
+corr_dec = corr['dec'].sort_values(ascending=False)
+
 
 
 
@@ -121,121 +163,24 @@ diff =  self_look_for_before.values - date_score
 #data = data.drop('match', axis=1)
 
 #%%
-n_components = 0.80; #Preserve 95% variance
-pca = PCA(n_components=n_components)
-data_transformed = pca.fit_transform(data)
+#n_components = 0.80; #Preserve 95% variance
+#pca = PCA(n_components=n_components)
+#data_transformed = pca.fit_transform(data)
 
 
 
-#%%
-corr = data.corr()
-corr_match = corr['match'].sort_values(ascending=False)
+#%% For later use
 
 
 
-#%% Handle null/NaN's 
-import re 
+round_3_2 = data[list(data.filter(regex="3_2"))]
+data = replaceGroup(data, round_3_2)
 
-
-def removeByPrefix(prefix, data):
-    column_names = data.columns;
-    for column_name in column_names :
-        if prefix in column_name:
-            data = data.drop([ column_name ], axis=1)
-    return data
-
-
-
-# Get shared columns
-column_names = data.columns;
-first_round_columns = [];
-second_round_columns = [];
-attr_names = [];
-
-for column_name in column_names :
-    if column_name.endswith("_1",0) or column_name.endswith("_2",0):
-        # Using re.findall() 
-        # Splitting text and number in string  
-        attr_splitted = re.findall('\d*\D+', column_name)
-        attr_splitted = attr_splitted[0].split("_")
-        attr_name = attr_splitted[0];
-        attr_names.append(attr_name);
-        
-        if column_name.endswith("_1",0):
-            first_round_columns.append(column_name)
-        elif column_name.endswith("_2",0):
-            second_round_columns.append(column_name)
-        
-
-
-
-# Selecting distinct columns
-second_round_columns_distinct = list(dict.fromkeys(second_round_columns))
-first_round_columns_distinct = list(dict.fromkeys(first_round_columns))
-
-
-list_difference = []
-for item in second_round_columns_distinct:
-  if item not in first_round_columns_distinct:
-    list_difference.append(item)
-
-
-
-# removing data by a prefix
-#data = removeByPrefix("satis", data)
-#data = removeByPrefix("numdat", data)
-#data = removeByPrefix("7", data)
-
-
-
-# Go throgh all rows (each person)
-second_round_columns.sort();
-first_round_columns.sort();
-columns_where_both_is_nan = [];
-
-first_round_new = [];
-second_round_new = [];
-
-
-#for person_data in data: 
-#    # get data for each of the sorted columns
-#
-#
-#
-#
-#
-#for i in range(len(second_round_columns)):
-#    first_round_column_data = data[first_round_columns[i]]
-#    second_round_column_data = data[second_round_columns[i]]
-#    
-#    
-#    for index in range(len(first_round_column_data)):
-#        first_round_column_person_data = first_round_column_data[index];
-#        second_round_column_person_data = second_round_column_data[index];
-#        
-#        # Check for NaN
-#        if np.isnan(first_round_column_person_data) and np.isnan(second_round_column_person_data):
-#            # Remove when both are NaN
-#            columns_where_both_is_nan.append(first_round_columns[i])
-#        elif np.isnan(first_round_column_person_data):
-#            first_round_column_data[index] = second_round_column_person_data;
-#        elif np.isnan(second_round_column_person_data):
-#            second_round_column_person_data[index] = first_round_column_person_data;
-#        
-#        
-#        
-        
-
-# If 
+round_5_2 = data[list(data.filter(regex="5_2"))]
+data = replaceGroup(data, round_5_2)
 
 
 
 
-
-
-
-
-    #matching = [s for s in column_names if "abc" in s]
-    #diff_mising_columns = (first_round_columns != second_round_columns)
 
 
