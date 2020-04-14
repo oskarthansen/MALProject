@@ -8,9 +8,8 @@ from DataLoad import load_data
 from dataCleanUp import scaleGroup, replaceGroup
 import pandas as pd
 import numpy as np
-from sklearn.decomposition import PCA
 raw_data = load_data()
-data = raw_data.drop(['iid', 'id', 'idg', 'partner', 'pid', 'position', 'positin1', 'career', 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
+data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
 #data = data[data.columns.drop(list(data.filter(regex='_3')))]
 #%%One hot encoding
 data = data[data.columns.drop(list(data.filter(regex="_3")))]
@@ -88,25 +87,29 @@ data = pd.concat([data, scaledColumns], axis=1)
 
 attr_other = ["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o", "shar_o"]
 
+#%%Scale to 100 point scale 
 round_3_1 = data[list(data.filter(regex="3_1"))]
+round_3_1 = scaleGroup(round_3_1, 100)
 data= replaceGroup(data, round_3_1)
 
 round_5_1 = data[list(data.filter(regex="5_1"))]
+round_5_1 = scaleGroup(round_5_1, 100)
 data = replaceGroup(data, round_5_1)
 
 round_3_s = data[list(data.filter(regex="3_s"))]
+round_3_s = scaleGroup(round_3_s, 100)
 data = replaceGroup(data, round_3_s)
 
-round_3_2 = data[list(data.filter(regex="3_2"))]
-data = replaceGroup(data, round_3_2)
-
-round_5_2 = data[list(data.filter(regex="5_2"))]
-data = replaceGroup(data, round_5_2)
-
 score = data[["attr", "sinc", "intel", "fun", "amb", "shar"]]
+score = scaleGroup(score, 100)
 data = replaceGroup(data, score)
 
-#columnsToScale = wavesToScale[['attr1_1', "sinc1_1",]]
+score_o = data[["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o", "shar_o"]]
+score_o = scaleGroup(score_o, 100)
+data = replaceGroup(data, score_o)
+
+#%%
+
 
 #%% Set NaN to median values
 from sklearn.impute import SimpleImputer
@@ -117,34 +120,36 @@ data = pd.DataFrame(imputer.transform(data), columns=data.columns, index=data.in
 
 
 
+
+
 #%%Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
 self_look_for_during_date = data[["attr1_s", "sinc1_s", "intel1_s", "fun1_s", "amb1_s", "shar1_s"]]
-self_look_for_after_date_1 = data[["attr1_2", "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]]
+#self_look_for_after_date_1 = data[["attr1_2", "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]]
 
 date_score = data[['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
 
 diff_before =  self_look_for_before.values - date_score
 diff_during = self_look_for_during_date.values - date_score
-diff_after_1 = self_look_for_after_date_1.values - date_score
+#diff_after_1 = self_look_for_after_date_1.values - date_score
 
 def calcLength(row):
     return (row.values ** 2).mean() ** .5
 
 lookfor_before_vs_datescore_diff = diff_before.apply(calcLength, axis=1)
 lookfor_during_vs_datescore_diff = diff_during.apply(calcLength, axis=1)
-lookfor_after1_vs_datescore_diff = diff_after_1.apply(calcLength, axis=1)
+#lookfor_after1_vs_datescore_diff = diff_after_1.apply(calcLength, axis=1)
 
 #Invert scaling
 lookfor_before_vs_datescore_diff = 100 - lookfor_before_vs_datescore_diff
 lookfor_during_vs_datescore_diff = 100 - lookfor_during_vs_datescore_diff
-lookfor_after1_vs_datescore_diff = 100 - lookfor_after1_vs_datescore_diff
+#lookfor_after1_vs_datescore_diff = 100 - lookfor_after1_vs_datescore_diff
 
 lookfor_before_vs_datescore_diff.name = "lookfor_before_vs_datescore_diff"
 lookfor_during_vs_datescore_diff.name = "lookfor_during_vs_datescore_diff"
-lookfor_after1_vs_datescore_diff.name = "lookfor_after1_vs_datescore_diff"
+#lookfor_after1_vs_datescore_diff.name = "lookfor_after1_vs_datescore_diff"
 
-lookfor_vs_datescore_diffs = pd.concat([lookfor_before_vs_datescore_diff, lookfor_during_vs_datescore_diff, lookfor_after1_vs_datescore_diff], axis=1)
+lookfor_vs_datescore_diffs = pd.concat([lookfor_before_vs_datescore_diff, lookfor_during_vs_datescore_diff], axis=1)
 data = pd.concat([data, pd.DataFrame(lookfor_vs_datescore_diffs)], axis=1)
 
 corr = data.corr()
@@ -164,8 +169,15 @@ corr_dec = corr['dec'].sort_values(ascending=False)
 
 
 
-#%%
+#%% For later use
 
+
+
+round_3_2 = data[list(data.filter(regex="3_2"))]
+data = replaceGroup(data, round_3_2)
+
+round_5_2 = data[list(data.filter(regex="5_2"))]
+data = replaceGroup(data, round_5_2)
 
 
 

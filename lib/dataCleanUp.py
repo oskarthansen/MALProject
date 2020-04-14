@@ -13,5 +13,5 @@ def scaleGroup(group, scalar):
 
 def replaceGroup(data, newGroup):
     import pandas as pd
-    data = data.drop(newGroup.columns)
+    data.drop(newGroup.columns, axis=1, inplace=True)
     return pd.concat([data, newGroup], axis=1)

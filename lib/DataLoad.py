@@ -6,7 +6,7 @@ Created on Tue Mar  3 14:19:31 2020
 """
 def load_data():
     import pandas as pd
-    csv_path = "C:/Users/valde/Skole/6. semester/ITMAL/MALProject/Speed_Dating_Data.csv"
+    csv_path = "Speed_Dating_Data.csv"
     return pd.read_csv(csv_path, encoding = "ISO-8859-1")
 
 
