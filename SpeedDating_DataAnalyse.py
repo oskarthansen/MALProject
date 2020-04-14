@@ -4,7 +4,7 @@ Created on Tue Mar  3 14:31:27 2020
 
 @author: valde
 """
-from DataLoad import load_data
+from lib.DataLoad import load_data
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
@@ -133,6 +133,109 @@ corr_match = corr['match'].sort_values(ascending=False)
 
 
 
+#%% Handle null/NaN's 
+import re 
 
+
+def removeByPrefix(prefix, data):
+    column_names = data.columns;
+    for column_name in column_names :
+        if prefix in column_name:
+            data = data.drop([ column_name ], axis=1)
+    return data
+
+
+
+# Get shared columns
+column_names = data.columns;
+first_round_columns = [];
+second_round_columns = [];
+attr_names = [];
+
+for column_name in column_names :
+    if column_name.endswith("_1",0) or column_name.endswith("_2",0):
+        # Using re.findall() 
+        # Splitting text and number in string  
+        attr_splitted = re.findall('\d*\D+', column_name)
+        attr_splitted = attr_splitted[0].split("_")
+        attr_name = attr_splitted[0];
+        attr_names.append(attr_name);
+        
+        if column_name.endswith("_1",0):
+            first_round_columns.append(column_name)
+        elif column_name.endswith("_2",0):
+            second_round_columns.append(column_name)
+        
+
+
+
+# Selecting distinct columns
+second_round_columns_distinct = list(dict.fromkeys(second_round_columns))
+first_round_columns_distinct = list(dict.fromkeys(first_round_columns))
+
+
+list_difference = []
+for item in second_round_columns_distinct:
+  if item not in first_round_columns_distinct:
+    list_difference.append(item)
+
+
+
+# removing data by a prefix
+#data = removeByPrefix("satis", data)
+#data = removeByPrefix("numdat", data)
+#data = removeByPrefix("7", data)
+
+
+
+# Go throgh all rows (each person)
+second_round_columns.sort();
+first_round_columns.sort();
+columns_where_both_is_nan = [];
+
+first_round_new = [];
+second_round_new = [];
+
+
+#for person_data in data: 
+#    # get data for each of the sorted columns
+#
+#
+#
+#
+#
+#for i in range(len(second_round_columns)):
+#    first_round_column_data = data[first_round_columns[i]]
+#    second_round_column_data = data[second_round_columns[i]]
+#    
+#    
+#    for index in range(len(first_round_column_data)):
+#        first_round_column_person_data = first_round_column_data[index];
+#        second_round_column_person_data = second_round_column_data[index];
+#        
+#        # Check for NaN
+#        if np.isnan(first_round_column_person_data) and np.isnan(second_round_column_person_data):
+#            # Remove when both are NaN
+#            columns_where_both_is_nan.append(first_round_columns[i])
+#        elif np.isnan(first_round_column_person_data):
+#            first_round_column_data[index] = second_round_column_person_data;
+#        elif np.isnan(second_round_column_person_data):
+#            second_round_column_person_data[index] = first_round_column_person_data;
+#        
+#        
+#        
+        
+
+# If 
+
+
+
+
+
+
+
+
+    #matching = [s for s in column_names if "abc" in s]
+    #diff_mising_columns = (first_round_columns != second_round_columns)
 
 
