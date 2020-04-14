@@ -128,23 +128,24 @@ diff_before =  self_look_for_before.values - date_score
 diff_during = self_look_for_during_date.values - date_score
 diff_after_1 = self_look_for_after_date_1.values - date_score
 
-def calcRowRMSE(row):
+def calcLength(row):
     return (row.values ** 2).mean() ** .5
 
-rmse_before = diff_before.apply(calcRowRMSE, axis=1)
-rmse_during = diff_during.apply(calcRowRMSE, axis=1)
-rmse_after_1 = diff_after_1.apply(calcRowRMSE, axis=1)
+lookfor_before_vs_datescore_diff = diff_before.apply(calcLength, axis=1)
+lookfor_during_vs_datescore_diff = diff_during.apply(calcLength, axis=1)
+lookfor_after1_vs_datescore_diff = diff_after_1.apply(calcLength, axis=1)
 
-rmse_before = 100 - rmse_before
-rmse_during = 100 - rmse_during
-rmse_after_1 = 100 - rmse_after_1
+#Invert scaling
+lookfor_before_vs_datescore_diff = 100 - lookfor_before_vs_datescore_diff
+lookfor_during_vs_datescore_diff = 100 - lookfor_during_vs_datescore_diff
+lookfor_after1_vs_datescore_diff = 100 - lookfor_after1_vs_datescore_diff
 
-rmse_before.name = "rmse_before"
-rmse_during.name = "rmse_during"
-rmse_after_1.name = "rmse_after_1"
+lookfor_before_vs_datescore_diff.name = "lookfor_before_vs_datescore_diff"
+lookfor_during_vs_datescore_diff.name = "lookfor_during_vs_datescore_diff"
+lookfor_after1_vs_datescore_diff.name = "lookfor_after1_vs_datescore_diff"
 
-rmse = pd.concat([rmse_before, rmse_during, rmse_after_1], axis=1)
-data = pd.concat([data, pd.DataFrame(rmse)], axis=1)
+lookfor_vs_datescore_diffs = pd.concat([lookfor_before_vs_datescore_diff, lookfor_during_vs_datescore_diff, lookfor_after1_vs_datescore_diff], axis=1)
+data = pd.concat([data, pd.DataFrame(lookfor_vs_datescore_diffs)], axis=1)
 
 corr = data.corr()
 corr_dec = corr['dec'].sort_values(ascending=False)
