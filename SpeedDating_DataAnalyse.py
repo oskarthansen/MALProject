@@ -180,6 +180,38 @@ round_5_2 = data[list(data.filter(regex="5_2"))]
 data = replaceGroup(data, round_5_2)
 
 
+#%% Ability to predict your own score on different attributes
+
+rating_of_attributes_on_self = data[["attr5_1", "sinc5_1", "intel5_1", "fun5_1", "amb5_1"]]
+attr_other_2 = ["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o"]
+rating_of_attributes_other = data[attr_other_2]
+
+attributes_other_self_df = rating_of_attributes_other.join(rating_of_attributes_on_self)
+
+attr_dif = [];
+sinc_dif = [];
+intel_dif = [];
+fun_dif = [];
+amb_dif = [];
+
+for index, row in attributes_other_self_df.iterrows():
+    attr_dif.append(row['attr5_1'] - row['attr_o'])
+    sinc_dif.append(row['sinc5_1'] - row['sinc_o'])
+    intel_dif.append(row['intel5_1'] - row['intel_o'])
+    fun_dif.append(row['fun5_1'] - row['fun_o'])
+    amb_dif.append(row['amb5_1'] - row['amb_o'])
+
+rating_diff_data = {'attr_dif': attr_dif,
+                    'sinc_dif': sinc_dif,
+                    'intel_dif': intel_dif, 
+                    'fun_dif': fun_dif,
+                    'amb_dif': amb_dif }
+
+rating_diff_data_df = pd.DataFrame(rating_diff_data) 
+
+
+
+
 
 
 
