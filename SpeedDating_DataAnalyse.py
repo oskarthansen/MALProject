@@ -4,12 +4,21 @@ Created on Tue Mar  3 14:31:27 2020
 
 @author: valde
 """
-from lib.DataLoad import load_data
-from lib.dataCleanUp import scaleGroup, replaceGroup
+
+
+import sys
+sys.path.append('C:/Users/OskarThorinHansen/Aarhus Universitet lab/MALProject/lib')
+
+from DataLoad import load_data
+from dataCleanUp import scaleGroup, replaceGroup
 import pandas as pd
 import numpy as np
 raw_data = load_data()
+
+
 data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
+
+
 #data = data[data.columns.drop(list(data.filter(regex='_3')))]
 #%%One hot encoding
 data = data[data.columns.drop(list(data.filter(regex="_3")))]
@@ -182,5 +191,62 @@ data = replaceGroup(data, round_5_2)
 
 
 
+#%% ML algorithm
 
+
+
+
+import tensorflow as tf
+from tensorflow import keras
+from sklearn.model_selection import train_test_split
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Drop match, to enhance model
+data = data.drop(['match', 'iid'], axis=1)
+
+def remove_by_contains(searchString, inputData):
+    matching = [s for s in inputData.columns if searchString in s]
+    inputData = inputData.drop(matching, axis=1)
+    return inputData
+
+data = remove_by_contains('_o', data)
+
+
+# Generate men dataset
+men = data.loc[data['gender'] == 1]
+men = men.drop('gender', axis=1)
+
+# Separate features and labels
+features = men.drop('dec',axis=1)
+labels = men.dec
+
+X_train , X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2)
+
+
+# Set the input shape
+input_shape = (len(X_train.columns),)
+print(f'Feature shape: {input_shape}')
+
+
+# Model for men
+
+model = keras.models.Sequential()
+model.add(keras.layers.Dense(len(X_train.columns), input_shape=input_shape, activation="relu"))
+model.add(keras.layers.Dense((len(X_train.columns) / 2), activation="relu"))
+model.add(keras.layers.Dense(1, activation='linear'))
+model.summary()
+
+# Configure the model and start training
+model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mean_squared_error', 'accuracy'])
+history = model.fit(X_train, y_train, epochs=10, batch_size=10, verbose=1, validation_split=0.2)
+
+pd.DataFrame(history.history).plot(figsize=(8, 5))
+plt.grid(True)
+plt.gca().set_ylim(0, 1) # set the vertical range to [0-1]
+plt.show()
+
+# Testing
+X_new = X_test[:6]
+y_proba = model.predict(X_new)
 
