@@ -10,11 +10,44 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 raw_data = load_data()
-data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', "career_c", 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
+#data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', "career_c", 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
 #data = data[data.columns.drop(list(data.filter(regex='_3')))]
 
-#%% Removing nans
+#%%
+# For fun, see how many found a match
+pd.crosstab(index=dating['match'],columns="count")
 
+#%% Removing Nans
+# Summerizing nans in every feature/coloum 
+raw_data.isnull().sum()
+# Chosing which features to drop. Based on number of NaNs, and interest for us. 
+data1 = raw_data.iloc[:, 11:28]
+data2 = raw_data.iloc[:, 30:35]
+data3 = raw_data.iloc[:, 39:43]
+data4 = raw_data.iloc[:, 45:67]
+data5 = raw_data.iloc[:, 69:74]
+data6 = raw_data.iloc[:, 87:91]
+data7 = raw_data.iloc[:, 97:102]
+data8 = raw_data.iloc[:, 104:107]
+
+data = pd.concat([raw_data.iloc[:, 0],raw_data.iloc[:, 2],data1,data2,data3,data4,data5,data6,data7,data8], axis=1)
+# Summerizing null values again
+data.isnull().sum()
+# removing rows with a nan values. Okay, to do because the NaNs in the features are more likely 100 than 1000
+data2 = data.dropna()
+# See if it works
+data2.isnull().sum()
+
+# Looking on data types
+data2.dtypes
+# Removing the object features. Maybe, we will onehot-encode them later
+data3 = data2.drop(['field', 'from', 'career'], axis=1)
+# Make a heatmap
+plt.subplots(figsize=(20,15))
+ax = plt.axes()
+ax.set_title("Correlation Heatmap")
+corr = data3.corr()
+sns.heatmap(corr,xticklabels=corr.columns.values,yticklabels=corr.columns.values)
 
 #%%One hot encoding
 data = data[data.columns.drop(list(data.filter(regex="_3")))]
