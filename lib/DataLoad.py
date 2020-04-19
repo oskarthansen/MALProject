@@ -7,7 +7,7 @@ Created on Tue Mar  3 14:19:31 2020
 def load_data():
     import pandas as pd
     csv_path = "Speed_Dating_Data.csv"
-    csv_path = "C:/Users/jonas/OneDrive - Aarhus Universitet/UNI/6. semester/MAL/MALProject/Speed_Dating_Data.csv"
-    return pd.read_csv(csv_path, encoding = "ISO-8859-1")
+    csv_path = r"C:\Users\valde\Skole\6. semester\ITMAL\MALProject\Speed_Dating_Data.csv"
+    return pd.read_csv(csv_path.replace("\\", "/"), encoding = "ISO-8859-1")
 
 

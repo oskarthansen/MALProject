@@ -15,7 +15,7 @@ raw_data = load_data()
 
 #%%
 # For fun, see how many found a match
-pd.crosstab(index=dating['match'],columns="count")
+pd.crosstab(index=raw_data['match'],columns="count")
 
 #%% Removing Nans
 # Summerizing nans in every feature/coloum 
@@ -133,7 +133,6 @@ data = replaceGroup(data, scaledColumns)
 #round_3_1 = scaleGroup(round_3_1, 100)
 #data= replaceGroup(data, round_3_1)
 
-<<<<<<< HEAD
 round_3_s = data[list(data.filter(regex="3_s"))]
 round_3_s = scaleGroup(round_3_s, 100)
 data = replaceGroup(data, round_3_s)
@@ -147,11 +146,10 @@ score_o = scaleGroup(score_o, 100)
 data = replaceGroup(data, score_o)
 
 #%%
-=======
+
 #round_5_1 = data[list(data.filter(regex="5_1"))]
 #round_5_1 = scaleGroup(round_5_1, 100)
 #data = replaceGroup(data, round_5_1)
->>>>>>> cf32116976ccf8c53695f4bb7b74b1665b7096ca
 
 #round_3_s = data[list(data.filter(regex="3_s"))]
 #round_3_s = scaleGroup(round_3_s, 100)
@@ -163,11 +161,7 @@ imputer = SimpleImputer(strategy='median')
 imputer.fit(data)
 data = pd.DataFrame(imputer.transform(data), columns=data.columns, index=data.index)
 
-<<<<<<< HEAD
-=======
 
-
->>>>>>> cf32116976ccf8c53695f4bb7b74b1665b7096ca
 #%%Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
 self_look_for_during_date = data[["attr1_s", "sinc1_s", "intel1_s", "fun1_s", "amb1_s", "shar1_s"]]
