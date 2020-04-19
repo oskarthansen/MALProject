@@ -11,6 +11,10 @@ import numpy as np
 raw_data = load_data()
 data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
 #data = data[data.columns.drop(list(data.filter(regex='_3')))]
+
+#%% Removing nans
+
+
 #%%One hot encoding
 data = data[data.columns.drop(list(data.filter(regex="_3")))]
 
@@ -48,9 +52,9 @@ data = pd.concat([data, go_out], axis=1)
 wavesToScale = data[((data['wave'] >= 6) & (data['wave'] <= 9))]
 allScaledColumns = pd.DataFrame(wavesToScale['wave'])
 
-round_1_1 = ['attr1_1', "sinc1_1", "intel1_1", "fun1_1", "amb1_1", "shar1_1"]
-columnsToScale = wavesToScale[round_1_1]
-allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
+#round_1_1 = ['attr1_1', "sinc1_1", "intel1_1", "fun1_1", "amb1_1", "shar1_1"]
+#columnsToScale = wavesToScale[round_1_1]
+#allScaledColumns = pd.concat([allScaledColumns, scaleGroup(columnsToScale, 100)], axis=1)
 
 round_4_1 = ['attr4_1', "sinc4_1", "intel4_1", "fun4_1", "amb4_1", "shar4_1"]
 columnsToScale = wavesToScale[round_4_1]
@@ -101,7 +105,7 @@ round_3_s = scaleGroup(round_3_s, 100)
 data = replaceGroup(data, round_3_s)
 
 score = data[["attr", "sinc", "intel", "fun", "amb", "shar"]]
-score = scaleGroup(score, 100)
+#score = scaleGroup(score, 100)
 data = replaceGroup(data, score)
 
 score_o = data[["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o", "shar_o"]]
@@ -116,11 +120,6 @@ from sklearn.impute import SimpleImputer
 imputer = SimpleImputer(strategy='median')
 imputer.fit(data)
 data = pd.DataFrame(imputer.transform(data), columns=data.columns, index=data.index)
-
-
-
-
-
 
 #%%Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
