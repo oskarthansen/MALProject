@@ -8,6 +8,7 @@ from DataLoad import load_data
 from dataCleanUp import scaleGroup, replaceGroup
 import pandas as pd
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 raw_data = load_data()
 #data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', "career_c", 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
@@ -15,7 +16,7 @@ raw_data = load_data()
 
 #%%
 # For fun, see how many found a match
-pd.crosstab(index=dating['match'],columns="count")
+pd.crosstab(index=raw_data['match'],columns="count")
 
 #%% Removing Nans
 # Summerizing nans in every feature/coloum 
