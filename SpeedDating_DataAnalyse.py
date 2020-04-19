@@ -282,7 +282,6 @@ attrs = ['attr', 'sinc', 'intel', 'fun', 'amb']
 diff_scores = pd.DataFrame()
 for i in np.arange(552):
     #Get rows for current participant
-    i = 2
     rows = data[data["iid"] == i]
     self_score_1 = pd.DataFrame(rows[list(rows.filter(regex="3_1"))].mean()).T
     think_other_score = pd.DataFrame(rows[list(rows.filter(regex="5_1"))].mean()).T
@@ -322,6 +321,31 @@ PlotBarSeries(df, "Mean score", "How du you rate yourself before vs during the s
 #%%Does the number of dec=1 impact the way you feel about yourself?
 
 
+#%% Does int_corr correlate with shar? or are we not able to evaluate shared interests in 4 minutes?
+int_corr = data[["int_corr"]]
+shar = data[["shar", "shar_o"]]
+df = pd.concat([int_corr, shar], axis=1)
+corr = df.corr()
+PlotHeatmap(corr, "Shared interests", 0, 1)
+
+#%%How good are we at predicting the other persons answer
+dec_yes_other = data[data["dec_o"] == 1]
+dec_no_other = data[data["dec_o"] == 0]
+dec_yes = data[data["dec"] == 1]
+dec_no = data[data["dec"] == 0]
+
+dec_yes_other_prob_mean = dec_yes_other["prob"].mean()
+dec_no_other_prob_mean = dec_no_other["prob"].mean()
+
+dec_yes_prob_mean = dec_yes["prob"].mean()
+dec_no_prob_mean = dec_no["prob"].mean()
+
+df = pd.DataFrame([[dec_yes_prob_mean, dec_yes_other_prob_mean], [dec_no_prob_mean, dec_no_other_prob_mean]], columns=["Own decision", "Other decision"], index=["Yes", "No"])
+PlotBarSeries(df,"prob mean-value" ,"Average probability for other say yes for dec=yes and dec=no")
+
+
+#%%
+    
 #%% For later use
 
 
