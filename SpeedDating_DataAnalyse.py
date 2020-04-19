@@ -147,6 +147,10 @@ score_o = scaleGroup(score_o, 100)
 data = replaceGroup(data, score_o)
 
 #%%
+<<<<<<< HEAD
+=======
+
+>>>>>>> f814064b145cab460ec9b67b94b0e77e9c2d93e5
 #round_5_1 = data[list(data.filter(regex="5_1"))]
 #round_5_1 = scaleGroup(round_5_1, 100)
 #data = replaceGroup(data, round_5_1)
@@ -161,6 +165,10 @@ imputer = SimpleImputer(strategy='median')
 imputer.fit(data)
 data = pd.DataFrame(imputer.transform(data), columns=data.columns, index=data.index)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> f814064b145cab460ec9b67b94b0e77e9c2d93e5
 #%%Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
 self_look_for_during_date = data[["attr1_s", "sinc1_s", "intel1_s", "fun1_s", "amb1_s", "shar1_s"]]
