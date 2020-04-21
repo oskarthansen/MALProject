@@ -4,8 +4,8 @@ Created on Tue Mar  3 14:31:27 2020
 
 @author: valde
 """
-from DataLoad import load_data
-from dataCleanUp import scaleGroup, replaceGroup
+from lib.DataLoad import load_data
+from lib.dataCleanUp import scaleGroup, replaceGroup
 import pandas as pd
 import numpy as np
 import seaborn as sns
