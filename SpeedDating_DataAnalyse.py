@@ -118,35 +118,10 @@ columnsToScale = data[round_1_1]
 scaledColumns = scaleGroup(columnsToScale, 100)
 data = replaceGroup(data, scaledColumns)
 
-#round_4_1 = ['attr4_1', "sinc4_1", "intel4_1", "fun4_1", "amb4_1", "shar4_1"]
-#columnsToScale = data[round_4_1]
-#scaledColumns = scaleGroup(columnsToScale, 100)
-#data = replaceGroup(data, scaledColumns)
-
 round_2_1 = ['attr2_1', "sinc2_1", "intel2_1", "fun2_1", "amb2_1", "shar2_1"]
 columnsToScale = data[round_2_1]
 scaledColumns = scaleGroup(columnsToScale, 100)
 data = replaceGroup(data, scaledColumns)
-
-#round_1_2 = ['attr1_2', "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]
-#columnsToScale = data[round_1_2]
-#scaledColumns = scaleGroup(columnsToScale, 100)
-#data = replaceGroup(data, scaledColumns)
-
-#round_4_2 = ["attr4_2", "sinc4_2", "intel4_2", "fun4_2", "amb4_2", "shar4_2"]
-#columnsToScale = data[round_4_2]
-#scaledColumns = scaleGroup(columnsToScale, 100)
-#data = replaceGroup(data, scaledColumns)
-
-#round_2_2 = ["attr2_2", "sinc2_2", "intel2_2", "fun2_2", "amb2_2", "shar2_2"]
-#columnsToScale = data[round_2_2]
-#scaledColumns = scaleGroup(columnsToScale, 100)
-#data = replaceGroup(data, scaledColumns)
-
-#round_7_2 = ['attr7_2', "sinc7_2", "intel7_2", "fun7_2", "amb7_2", "shar7_2"]
-#columnsToScale = data[round_7_2]
-#scaledColumns = scaleGroup(columnsToScale, 100)
-#data = replaceGroup(data, scaledColumns)
 
 
 #%%Scale to 100 point scale 
@@ -165,15 +140,6 @@ data = replaceGroup(data, score)
 score_o = data[["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o", "shar_o"]]
 score_o = scaleGroup(score_o, 100)
 data = replaceGroup(data, score_o)
-
-#%%
-#round_5_1 = data[list(data.filter(regex="5_1"))]
-#round_5_1 = scaleGroup(round_5_1, 100)
-#data = replaceGroup(data, round_5_1)
-
-#round_3_s = data[list(data.filter(regex="3_s"))]
-#round_3_s = scaleGroup(round_3_s, 100)
-#data = replaceGroup(data, round_3_s)
 
 #%% Set NaN to median values
 
