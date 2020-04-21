@@ -68,6 +68,7 @@ too_many_nans = null_sum[null_sum < 750].index.values
 too_many_nans = [str(index) for index in too_many_nans]
 data = raw_data[too_many_nans]
 data = data.dropna()
+data = data.drop(["field", "from", "career"], axis=1)
 
 #%%One hot encoding
 data = data[data.columns.drop(list(data.filter(regex="_3")))]
@@ -85,21 +86,6 @@ data = pd.concat([data, race_1hot], axis=1)
 goal_1hot = pd.get_dummies(data['goal'], prefix='goal')
 data = data.drop('goal', axis=1)
 data = pd.concat([data, goal_1hot], axis=1)
-#Check to see if similar goal
-same_goal_column = pd.DataFrame(0, index=np.arange(len(data.index)), columns=["same_goal"])
-
-for i, row in data.iterrows():
-    goal = row.filter(regex="goal")
-    pid = row["pid"]
-    pid_rows = data["iid"] == pid
-    pid_rows = data[pid_rows]
-    if len(pid_rows) > 0:
-        pid_rows = pid_rows.iloc[0,:] #get first row only
-        goal_o = pid_rows.filter(regex="goal")
-        same_goal = sum(((goal == goal_o) & (goal == 1)))
-        same_goal_column.at[i, "same_goal"] = same_goal
-data = pd.concat([data, same_goal_column], axis=1)
-
 
 date = data['date']
 date = np.abs(8 - date)
@@ -256,16 +242,13 @@ PlotBarSeries(df,"prob mean-value" ,"Average probability for other say yes for d
 
 #%% ML algorithm
 
-import tensorflow as tf
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
-import pandas as pd
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 
 #data = data2
 # Drop match, to enhance model
-data = data.drop(['match', 'iid', 'field', 'from', 'career'], axis=1)
+data = data.drop(['match', 'iid'], axis=1)
 
 def remove_by_contains(searchString, inputData):
     matching = [s for s in inputData.columns if searchString in s]
@@ -296,7 +279,6 @@ X_test = scaler.transform(X_test)
 # Set the input shape (1D array)
 input_shape = X_train.shape[1:]
 print(f'Feature shape: {input_shape}')
-
 
 # Model for men
 
