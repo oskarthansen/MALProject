@@ -18,10 +18,13 @@ raw_data = load_data()
 # For fun, see how many found a match
 pd.crosstab(index=raw_data['match'],columns="count")
 
+shar = raw_data[["shar","iid"]]
+
 #%% Removing Nans
 # Summerizing nans in every feature/coloum 
-raw_data.isnull().sum()
-# Chosing which features to drop. Based on number of NaNs, and interest for us. 
+
+# Chosing which features to drop. Based on number of NaNs, and interest for us.
+
 data1 = raw_data.iloc[:, 11:28]
 data2 = raw_data.iloc[:, 30:35]
 data3 = raw_data.iloc[:, 39:43]
@@ -36,6 +39,7 @@ data = pd.concat([raw_data.iloc[:, 0],raw_data.iloc[:, 2],data1,data2,data3,data
 data.isnull().sum()
 # removing rows with a nan values. Okay, to do because the NaNs in the features are more likely 100 than 1000
 data2 = data.dropna()
+
 # See if it works
 data2.isnull().sum()
 
@@ -49,6 +53,22 @@ ax = plt.axes()
 ax.set_title("Correlation Heatmap")
 corr = data3.corr()
 sns.heatmap(corr,xticklabels=corr.columns.values,yticklabels=corr.columns.values)
+#%%
+#Alternative way to filter away columns with to many NaN values.
+#Preserve shar value
+from sklearn.impute import SimpleImputer
+imputer = SimpleImputer(strategy='constant', fill_value=0)
+imputer.fit(raw_data[["shar", "shar_o"]])
+shar = pd.DataFrame(imputer.transform(raw_data[["shar", "shar_o"]]), columns=["shar", "shar_o"], index=raw_data.index)
+raw_data = replaceGroup(raw_data, shar)
+
+
+null_sum = raw_data.isnull().sum()
+too_many_nans = null_sum[null_sum < 750].index.values
+too_many_nans = [str(index) for index in too_many_nans]
+data = raw_data[too_many_nans]
+data = data.dropna()
+#**********************************************
 
 #%%One hot encoding
 data = data[data.columns.drop(list(data.filter(regex="_3")))]
@@ -75,7 +95,7 @@ for i, row in data.iterrows():
     pid_rows = data["iid"] == pid
     pid_rows = data[pid_rows]
     if len(pid_rows) > 0:
-        pid_rows = pid_rows.iloc[1,:] #get first row only
+        pid_rows = pid_rows.iloc[0,:] #get first row only
         goal_o = pid_rows.filter(regex="goal")
         same_goal = sum(((goal == goal_o) & (goal == 1)))
         same_goal_column.at[i, "same_goal"] = same_goal
@@ -98,35 +118,35 @@ columnsToScale = data[round_1_1]
 scaledColumns = scaleGroup(columnsToScale, 100)
 data = replaceGroup(data, scaledColumns)
 
-round_4_1 = ['attr4_1', "sinc4_1", "intel4_1", "fun4_1", "amb4_1", "shar4_1"]
-columnsToScale = data[round_4_1]
-scaledColumns = scaleGroup(columnsToScale, 100)
-data = replaceGroup(data, scaledColumns)
+#round_4_1 = ['attr4_1', "sinc4_1", "intel4_1", "fun4_1", "amb4_1", "shar4_1"]
+#columnsToScale = data[round_4_1]
+#scaledColumns = scaleGroup(columnsToScale, 100)
+#data = replaceGroup(data, scaledColumns)
 
 round_2_1 = ['attr2_1', "sinc2_1", "intel2_1", "fun2_1", "amb2_1", "shar2_1"]
 columnsToScale = data[round_2_1]
 scaledColumns = scaleGroup(columnsToScale, 100)
 data = replaceGroup(data, scaledColumns)
 
-round_1_2 = ['attr1_2', "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]
-columnsToScale = data[round_1_2]
-scaledColumns = scaleGroup(columnsToScale, 100)
-data = replaceGroup(data, scaledColumns)
+#round_1_2 = ['attr1_2', "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]
+#columnsToScale = data[round_1_2]
+#scaledColumns = scaleGroup(columnsToScale, 100)
+#data = replaceGroup(data, scaledColumns)
 
-round_4_2 = ["attr4_2", "sinc4_2", "intel4_2", "fun4_2", "amb4_2", "shar4_2"]
-columnsToScale = data[round_4_2]
-scaledColumns = scaleGroup(columnsToScale, 100)
-data = replaceGroup(data, scaledColumns)
+#round_4_2 = ["attr4_2", "sinc4_2", "intel4_2", "fun4_2", "amb4_2", "shar4_2"]
+#columnsToScale = data[round_4_2]
+#scaledColumns = scaleGroup(columnsToScale, 100)
+#data = replaceGroup(data, scaledColumns)
 
-round_2_2 = ["attr2_2", "sinc2_2", "intel2_2", "fun2_2", "amb2_2", "shar2_2"]
-columnsToScale = data[round_2_2]
-scaledColumns = scaleGroup(columnsToScale, 100)
-data = replaceGroup(data, scaledColumns)
+#round_2_2 = ["attr2_2", "sinc2_2", "intel2_2", "fun2_2", "amb2_2", "shar2_2"]
+#columnsToScale = data[round_2_2]
+#scaledColumns = scaleGroup(columnsToScale, 100)
+#data = replaceGroup(data, scaledColumns)
 
-round_7_2 = ['attr7_2', "sinc7_2", "intel7_2", "fun7_2", "amb7_2", "shar7_2"]
-columnsToScale = data[round_7_2]
-scaledColumns = scaleGroup(columnsToScale, 100)
-data = replaceGroup(data, scaledColumns)
+#round_7_2 = ['attr7_2', "sinc7_2", "intel7_2", "fun7_2", "amb7_2", "shar7_2"]
+#columnsToScale = data[round_7_2]
+#scaledColumns = scaleGroup(columnsToScale, 100)
+#data = replaceGroup(data, scaledColumns)
 
 
 #%%Scale to 100 point scale 
@@ -156,40 +176,28 @@ data = replaceGroup(data, score_o)
 #data = replaceGroup(data, round_3_s)
 
 #%% Set NaN to median values
-from sklearn.impute import SimpleImputer
-imputer = SimpleImputer(strategy='median')
-imputer.fit(data)
-data = pd.DataFrame(imputer.transform(data), columns=data.columns, index=data.index)
+
 
 #%%Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
-self_look_for_during_date = data[["attr1_s", "sinc1_s", "intel1_s", "fun1_s", "amb1_s", "shar1_s"]]
-#self_look_for_after_date_1 = data[["attr1_2", "sinc1_2", "intel1_2", "fun1_2", "amb1_2", "shar1_2"]]
+
 
 date_score = data[['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
 
 diff_before =  self_look_for_before.values - date_score
-diff_during = self_look_for_during_date.values - date_score
 #diff_after_1 = self_look_for_after_date_1.values - date_score
 
 def calcLength(row):
     return (row.values ** 2).mean() ** .5
 
 lookfor_before_vs_datescore_diff = diff_before.apply(calcLength, axis=1)
-lookfor_during_vs_datescore_diff = diff_during.apply(calcLength, axis=1)
 #lookfor_after1_vs_datescore_diff = diff_after_1.apply(calcLength, axis=1)
 
 #Invert scaling
 lookfor_before_vs_datescore_diff = 100 - lookfor_before_vs_datescore_diff
-lookfor_during_vs_datescore_diff = 100 - lookfor_during_vs_datescore_diff
-#lookfor_after1_vs_datescore_diff = 100 - lookfor_after1_vs_datescore_diff
-
 lookfor_before_vs_datescore_diff.name = "lookfor_before_vs_datescore_diff"
-lookfor_during_vs_datescore_diff.name = "lookfor_during_vs_datescore_diff"
-#lookfor_after1_vs_datescore_diff.name = "lookfor_after1_vs_datescore_diff"
 
-lookfor_vs_datescore_diffs = pd.concat([lookfor_before_vs_datescore_diff, lookfor_during_vs_datescore_diff], axis=1)
-data = pd.concat([data, pd.DataFrame(lookfor_vs_datescore_diffs)], axis=1)
+data = pd.concat([data, pd.DataFrame(lookfor_before_vs_datescore_diff)], axis=1)
 
 corr = data.corr()
 corr_dec = corr['dec'].sort_values(ascending=False)
@@ -209,14 +217,6 @@ dataframe = pd.concat([self_look_for_before_average_male, self_look_for_before_a
 dataframe.index = ["male", "female"]
 PlotBarSeries(dataframe, "Mean value","Attribute value mean by gender (round 1_1)")
 
-
-#%%
-self_look_for_during_average_male = male_avg[['attr1_s', 'sinc1_s', 'intel1_s', 'fun1_s', 'amb1_s', 'shar1_s']]
-self_look_for_during_average_female = female_avg[['attr1_s', 'sinc1_s', 'intel1_s', 'fun1_s', 'amb1_s', 'shar1_s']]
-labels = ['attr1_s', 'sinc1_s', 'intel1_s', 'fun1_s', 'amb1_s', 'shar1_s']
-dataframe = pd.concat([self_look_for_during_average_male, self_look_for_during_average_female], axis=1).T
-dataframe.index =  ["male", "female"]
-PlotBarSeries(dataframe, "Mean value","Attribute value mean by gender (round 1_s)")
 
 #%% Mean values by attribute for dec = 1
 all_dec_1_male = data[(data["dec"] == 1) & (data["gender"] == 1)]
