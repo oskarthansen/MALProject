@@ -21,38 +21,38 @@ pd.crosstab(index=raw_data['match'],columns="count")
 shar = raw_data[["shar","iid"]]
 
 #%% Removing Nans
-# Summerizing nans in every feature/coloum 
-
-# Chosing which features to drop. Based on number of NaNs, and interest for us.
-
-data1 = raw_data.iloc[:, 11:28]
-data2 = raw_data.iloc[:, 30:35]
-data3 = raw_data.iloc[:, 39:43]
-data4 = raw_data.iloc[:, 45:67]
-data5 = raw_data.iloc[:, 69:74]
-data6 = raw_data.iloc[:, 87:91]
-data7 = raw_data.iloc[:, 97:102]
-data8 = raw_data.iloc[:, 104:107]
-
-data = pd.concat([raw_data.iloc[:, 0],raw_data.iloc[:, 2],data1,data2,data3,data4,data5,data6,data7,data8], axis=1)
-# Summerizing null values again
-data.isnull().sum()
-# removing rows with a nan values. Okay, to do because the NaNs in the features are more likely 100 than 1000
-data2 = data.dropna()
-
-# See if it works
-data2.isnull().sum()
-
-# Looking on data types
-data2.dtypes
-# Removing the object features. Maybe, we will onehot-encode them later
-data3 = data2.drop(['field', 'from', 'career'], axis=1)
-# Make a heatmap
-plt.subplots(figsize=(20,15))
-ax = plt.axes()
-ax.set_title("Correlation Heatmap")
-corr = data3.corr()
-sns.heatmap(corr,xticklabels=corr.columns.values,yticklabels=corr.columns.values)
+## Summerizing nans in every feature/coloum 
+#
+## Chosing which features to drop. Based on number of NaNs, and interest for us.
+#
+#data1 = raw_data.iloc[:, 11:28]
+#data2 = raw_data.iloc[:, 30:35]
+#data3 = raw_data.iloc[:, 39:43]
+#data4 = raw_data.iloc[:, 45:67]
+#data5 = raw_data.iloc[:, 69:74]
+#data6 = raw_data.iloc[:, 87:91]
+#data7 = raw_data.iloc[:, 97:102]
+#data8 = raw_data.iloc[:, 104:107]
+#
+#data = pd.concat([raw_data.iloc[:, 0],raw_data.iloc[:, 2],data1,data2,data3,data4,data5,data6,data7,data8], axis=1)
+## Summerizing null values again
+#data.isnull().sum()
+## removing rows with a nan values. Okay, to do because the NaNs in the features are more likely 100 than 1000
+#data2 = data.dropna()
+#
+## See if it works
+#data2.isnull().sum()
+#
+## Looking on data types
+#data2.dtypes
+## Removing the object features. Maybe, we will onehot-encode them later
+#data3 = data2.drop(['field', 'from', 'career'], axis=1)
+## Make a heatmap
+#plt.subplots(figsize=(20,15))
+#ax = plt.axes()
+#ax.set_title("Correlation Heatmap")
+#corr = data3.corr()
+#sns.heatmap(corr,xticklabels=corr.columns.values,yticklabels=corr.columns.values)
 #%%
 #Alternative way to filter away columns with to many NaN values.
 #Preserve shar value
@@ -68,7 +68,6 @@ too_many_nans = null_sum[null_sum < 750].index.values
 too_many_nans = [str(index) for index in too_many_nans]
 data = raw_data[too_many_nans]
 data = data.dropna()
-#**********************************************
 
 #%%One hot encoding
 data = data[data.columns.drop(list(data.filter(regex="_3")))]
@@ -122,27 +121,6 @@ round_2_1 = ['attr2_1', "sinc2_1", "intel2_1", "fun2_1", "amb2_1", "shar2_1"]
 columnsToScale = data[round_2_1]
 scaledColumns = scaleGroup(columnsToScale, 100)
 data = replaceGroup(data, scaledColumns)
-
-
-#%%Scale to 100 point scale 
-#round_3_1 = data[list(data.filter(regex="3_1"))]
-#round_3_1 = scaleGroup(round_3_1, 100)
-#data= replaceGroup(data, round_3_1)
-
-round_3_s = data[list(data.filter(regex="3_s"))]
-round_3_s = scaleGroup(round_3_s, 100)
-data = replaceGroup(data, round_3_s)
-
-score = data[["attr", "sinc", "intel", "fun", "amb", "shar"]]
-#score = scaleGroup(score, 100)
-data = replaceGroup(data, score)
-
-score_o = data[["attr_o", "sinc_o", "intel_o", "fun_o", "amb_o", "shar_o"]]
-score_o = scaleGroup(score_o, 100)
-data = replaceGroup(data, score_o)
-
-#%% Set NaN to median values
-
 
 #%%Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
@@ -227,14 +205,6 @@ corr_no = dec_no_attr.corr()
 PlotHeatmap(corr_yes, "Yes", 0, 1)
 PlotHeatmap(corr_no, "No", 0, 1)
 
-#%%Check for difference in how you think measure up vs how you think others perceive you
-self_score_1 = data[list(data.filter(regex="3_1"))]
-think_other_score = data[list(data.filter(regex="5_1"))]
-diff = self_score_1.values - think_other_score
-diff_mean = pd.DataFrame(diff.mean()).T
-diff_mean.index = ["Diff"]
-PlotBarSeries(diff_mean, "Mean diff", "Self score - think others percieve you")
-
 
 #%% Check to see if you can predict your own score accurately. Which score predicts better? Prior or during the speed dating event?
 attrs = ['attr', 'sinc', 'intel', 'fun', 'amb']
@@ -243,39 +213,18 @@ for i in np.arange(552):
     #Get rows for current participant
     rows = data[data["iid"] == i]
     self_score_1 = pd.DataFrame(rows[list(rows.filter(regex="3_1"))].mean()).T
-    think_other_score = pd.DataFrame(rows[list(rows.filter(regex="5_1"))].mean()).T
     my_score = pd.DataFrame(rows[[attr + "_o" for attr in attrs]].mean()).T
     self_score_diff = self_score_1 - my_score.values
-    think_other_score_diff = think_other_score - my_score.values
-    result = pd.concat([self_score_diff, think_other_score_diff], axis=1)
+    result = pd.concat([self_score_diff], axis=1)
     diff_scores = pd.concat([diff_scores, result], axis=0)
     
 diff_scores_mean = diff_scores.mean()
 df = pd.DataFrame([diff_scores_mean])
 
-first_row = df.drop(list(df.filter(regex="3_1")), axis=1)
-first_row.index = ["3_1"]
-first_row.columns = attrs
+df.index = ["3_1"]
+df.columns = attrs
 
-second_row = df.drop(list(df.filter(regex="5_1")), axis=1)
-second_row.index = ["5_1"]
-second_row.columns = attrs
-
-df = pd.concat([first_row, second_row], axis=0)
-PlotBarSeries(df, "Mean difference", "Attribute score prediction for 3_1 and 5_1")
-
-#%%How does the way that you view yourself change before and during the speed date
-attr_3_1 = data[list(data.filter(regex="3_1"))]
-attr_3_s = data[list(data.filter(regex="3_s"))]
-attr_3_1 = pd.DataFrame(attr_3_1.mean()).T
-attr_3_s = pd.DataFrame(attr_3_s.mean()).T
-attr_3_1.columns = attrs
-attr_3_s.columns = attrs
-attr_3_1.index = ["Before"]
-attr_3_s.index = ["During"]
-df = pd.concat([attr_3_1, attr_3_s], axis=0)
-PlotBarSeries(df, "Mean score", "How du you rate yourself before vs during the speedate?")
-
+PlotBarSeries(df, "Mean difference", "Attribute score prediction for 3_1")
 
 #%%Does the number of dec=1 impact the way you feel about yourself?
 
@@ -301,22 +250,6 @@ dec_no_prob_mean = dec_no["prob"].mean()
 
 df = pd.DataFrame([[dec_yes_prob_mean, dec_yes_other_prob_mean], [dec_no_prob_mean, dec_no_other_prob_mean]], columns=["Own decision", "Other decision"], index=["Yes", "No"])
 PlotBarSeries(df,"prob mean-value" ,"Average probability for other say yes for dec=yes and dec=no")
-
-
-#%%
     
-#%% For later use
-
-
-
-round_3_2 = data[list(data.filter(regex="3_2"))]
-data = replaceGroup(data, round_3_2)
-
-round_5_2 = data[list(data.filter(regex="5_2"))]
-data = replaceGroup(data, round_5_2)
-
-
-
-
 
 
