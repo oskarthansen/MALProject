@@ -210,6 +210,7 @@ def remove_by_contains(searchString, inputData):
     inputData = inputData.drop(matching, axis=1)
     return inputData
 
+# Remove data from "other" person. The other persons opinion
 data = remove_by_contains('_o', data)
 
 
