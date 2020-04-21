@@ -206,7 +206,7 @@ PlotBarSeries(df,"prob mean-value" ,"Average probability for other say yes for d
 
 #%%
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 data_algorithm = data.drop(['match', 'iid', "id","idg", "condtn", "wave", "round", "position", "partner", "pid", "career_c", "sports", "tvsports", 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga'], axis=1)
 def remove_by_contains(searchString, inputData):
@@ -217,121 +217,43 @@ def remove_by_contains(searchString, inputData):
 # Remove data from "other" person. (The other persons opinion)
 data_algorithm = remove_by_contains('_o', data_algorithm)
 
-# Generate men dataset
-men = data_algorithm[data_algorithm['gender'] == 1]
-men = men.drop('gender', axis=1)
-features_men = men.drop('dec',axis=1)
-labels_men = men.dec
-
-X_train_men, X_test_men, y_train_men, y_test_men = train_test_split(features_men, labels_men)
-X_train_men, X_valid_men, y_train_men, y_valid_men = train_test_split(X_train_men, y_train_men)
-
-scaler = StandardScaler()
-X_train_men = scaler.fit_transform(X_train_men)
-X_valid_men = scaler.transform(X_valid_men)
-X_test_men = scaler.transform(X_test_men)
-
-
-#Generate women dataset
-women = data_algorithm[data_algorithm["gender"] == 0]
-women = women.drop("gender", axis=1)
-features_women = women.drop('dec', axis=1)
-labels_women = women.dec
-
-X_train_women, X_test_women, y_train_women, y_test_women = train_test_split(features_women, labels_women)
-X_train_women, X_valid_women, y_train_women, y_valid_women = train_test_split(X_train_women, y_train_women)
-
-scaler = StandardScaler()
-X_train_women = scaler.fit_transform(X_train_women)
-X_valid_women = scaler.transform(X_valid_women)
-X_test_women = scaler.transform(X_test_women)
-
 #Generate full dataset
 features_all = data_algorithm.drop('dec', axis=1)
 labels_all = data_algorithm.dec
 
-X_train_all, X_test_all, y_train_all, y_test_all = train_test_split(features_all, labels_all)
-X_train_all, X_valid_all, y_train_all, y_valid_all = train_test_split(X_train_all, y_train_all)
+X_train_all, X_test_all, y_train_all, y_test_all = train_test_split(features_all, labels_all, test_size=0.15)
+X_train_all, X_valid_all, y_train_all, y_valid_all = train_test_split(X_train_all, y_train_all, test_size=0.15)
 
 # Scaling the data
-scaler = StandardScaler()
-X_train_all = scaler.fit_transform(X_train_all)
-X_valid_all = scaler.transform(X_valid_all)
-X_test_all = scaler.transform(X_test_all)
+scaler = MinMaxScaler()
+X_train_all_scaled = scaler.fit_transform(X_train_all)
+X_valid_all_scaled = scaler.transform(X_valid_all)
+X_test_all_scaled = scaler.transform(X_test_all)
 
 from tensorflow import keras
-
-#%% ML algorithm for men
-input_shape = X_train_men.shape[1:]
-
-model = keras.models.Sequential()
-input_ = keras.layers.Input(shape=input_shape)
-hidden1 = keras.layers.Dense(30, activation="relu")(input_)
-hidden2 = keras.layers.Dense(15, activation="relu")(hidden1)
-concat = keras.layers.Concatenate()([input_, hidden2])
-output = keras.layers.Dense(1)(concat)
-model = keras.Model(inputs=[input_], outputs=[output])
-model.summary()
-
-model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error', 'accuracy'])
-history = model.fit(X_train_men, y_train_men, epochs=20, batch_size=10, verbose=1, validation_data=(X_valid_men, y_valid_men))
-
-pd.DataFrame(history.history).plot(figsize=(8, 5))
-plt.grid(True)
-plt.gca().set_ylim(0, 1)
-plt.show()
-
-# Testing
-mse_test = model.evaluate(X_test_men, y_test_men)
-X_new = X_test_men[:6]
-y_proba = model.predict(X_new)
-
-
-#%% For women
-input_shape = X_train_women.shape[1:]
-
-model = keras.models.Sequential()
-input_ = keras.layers.Input(shape=input_shape)
-hidden1 = keras.layers.Dense(30, activation="relu")(input_)
-hidden2 = keras.layers.Dense(15, activation="relu")(hidden1)
-concat = keras.layers.Concatenate()([input_, hidden2])
-output = keras.layers.Dense(1)(concat)
-model = keras.Model(inputs=[input_], outputs=[output])
-model.summary()
-
-# Configure the model and start training
-# Optimizer (pick the right one)
-# batch_size=10, 
-model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error', 'accuracy'])
-history = model.fit(X_train_women, y_train_women, epochs=20, batch_size=10, verbose=1, validation_data=(X_valid_women, y_valid_women))
-
-pd.DataFrame(history.history).plot(figsize=(8, 5))
-plt.grid(True)
-plt.gca().set_ylim(0, 1) # set the vertical range to [0-1]
-plt.show()
-
-# Testing
-mse_test = model.evaluate(X_test_women, y_test_women)
-X_new = X_test_women[:6]
-y_proba = model.predict(X_new)
 
 #%%For both genders with same model 
 input_shape = X_train_all.shape[1:]
 
-model = keras.models.Sequential()
-input_ = keras.layers.Input(shape=input_shape)
-hidden1 = keras.layers.Dense(30, activation="relu")(input_)
-hidden2 = keras.layers.Dense(15, activation="relu")(hidden1)
-concat = keras.layers.Concatenate()([input_, hidden2])
-output = keras.layers.Dense(1)(concat)
-model = keras.Model(inputs=[input_], outputs=[output])
-model.summary()
+model = keras.models.Sequential([
+    keras.layers.Flatten(input_shape=input_shape),
+    keras.layers.Dropout(rate=0.05),
+    keras.layers.Dense(300, activation="relu"),
+    keras.layers.Dropout(rate=0.2),
+    keras.layers.Dense(100, activation="relu"),
+    keras.layers.Dropout(rate=0.2),
+    keras.layers.Dense(50, activation="relu"),
+    keras.layers.Dropout(rate=0.2),
+    keras.layers.Dense(10, activation="relu"),
+    keras.layers.Dense(1, kernel_initializer="normal", activation="sigmoid")
+])
 
 # Configure the model and start training
 # Optimizer (pick the right one)
 # batch_size=10, 
-model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error', 'accuracy'])
-history = model.fit(X_train_all, y_train_all, epochs=20, batch_size=10, verbose=1, validation_data=(X_valid_all, y_valid_all))
+
+model.compile(loss='binary_crossentropy', optimizer=keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.99, amsgrad=False), metrics=['binary_crossentropy', 'accuracy', "mean_squared_error"])
+history = model.fit(X_train_all_scaled, y_train_all, epochs=60, batch_size=20, verbose=1, validation_data=(X_valid_all_scaled, y_valid_all), use_multiprocessing=True)
 
 
 pd.DataFrame(history.history).plot(figsize=(8, 5))
@@ -339,9 +261,12 @@ plt.grid(True)
 plt.gca().set_ylim(0, 1) # set the vertical range to [0-1]
 plt.show()
 
+mse_train = model.evaluate(X_train_all_scaled, y_train_all)
+mse_val = model.evaluate(X_valid_all_scaled, y_valid_all)
 # Testing
-mse_test = model.evaluate(X_test_all, y_test_all)
-X_new = X_test_all[:6]
+mse_test = model.evaluate(X_test_all_scaled, y_test_all)
+X_new = X_test_all[:20]
 y_proba = model.predict(X_new)
 
 #%%
+pred_dec = model.predict(X_train_all_scaled)
