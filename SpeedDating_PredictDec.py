@@ -2,7 +2,7 @@
 
 from lib.DataLoad import load_data
 from lib.dataCleanUp import scaleGroup, replaceGroup
-from lib.Plots import FullReport
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,7 +11,6 @@ raw_data = load_data()
 #data = data[data.columns.drop(list(data.filter(regex='_3')))]
 
 
-#%%
 from sklearn.impute import SimpleImputer
 imputer = SimpleImputer(strategy='constant', fill_value=0)
 imputer.fit(raw_data[["shar", "shar_o"]])
@@ -26,7 +25,6 @@ data = raw_data[too_many_nans]
 data = data.dropna()
 data = data.drop(["field", "from", "career"], axis=1)
 
-#%%One hot encoding
 data = data[data.columns.drop(list(data.filter(regex="_3")))]
 
 data.drop(["gender", "race_o", "race", "field_cd"], axis=1)
@@ -53,7 +51,6 @@ go_out = np.abs(8-go_out)
 data = data.drop('go_out', axis=1)
 data = pd.concat([data, go_out], axis=1)
 
-#%%
 round_1_1 = ['attr1_1', "sinc1_1", "intel1_1", "fun1_1", "amb1_1", "shar1_1"]
 columnsToScale = data[round_1_1]
 scaledColumns = scaleGroup(columnsToScale, 100)
@@ -64,7 +61,7 @@ columnsToScale = data[round_2_1]
 scaledColumns = scaleGroup(columnsToScale, 100)
 data = replaceGroup(data, scaledColumns)
 
-#%%Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
+#Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
 
 
@@ -211,8 +208,8 @@ data_algorithm = remove_by_contains('_o', data_algorithm)
 features_all = data_algorithm.drop('dec', axis=1)
 labels_all = data_algorithm.dec
 
-X_train_all, X_test_all, y_train_all, y_test_all = train_test_split(features_all, labels_all, test_size=0.15)
-X_train_all, X_valid_all, y_train_all, y_valid_all = train_test_split(X_train_all, y_train_all, test_size=0.15)
+X_train_all, X_test_all, y_train_all, y_test_all = train_test_split(features_all, labels_all, test_size=0.15, random_state=42)
+X_train_all, X_valid_all, y_train_all, y_valid_all = train_test_split(X_train_all, y_train_all, test_size=0.15, random_state=42)
 
 # Scaling the data
 scaler = MinMaxScaler()
@@ -270,28 +267,153 @@ X_test_all_scaled = scaler.transform(X_test_all)
 #
 ##%%
 #pred_dec = model.predict(X_train_all_scaled)
-#%%
-# pass in fixed parameters n_input and n_class
+
+#%% Find optimale lear
 from lib.ParamTuning import build_keras_base
 from keras.wrappers.scikit_learn import KerasClassifier
 from time import time
+from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping, LearningRateScheduler
+import math
+
 input_shape = X_train_all.shape[1:]
+#hidden_layers = [(300,100,50), (100,20,30), (300,50,50,50)]
+#dropout = [(0,0.2,0.2), (0.1,0.4,0.4), (0.4,0.3,0.3)]
+models = []
 model_keras = KerasClassifier(
-    build_fn = build_keras_base,
-    n_input = input_shape[0],
-    n_class = 1,
-)
-from sklearn.model_selection import RandomizedSearchCV
+            build_fn = build_keras_base, 
+            hidden_layers=[300,100], 
+            dropout_rate=[0.2,0.2],
+            n_input=input_shape[0],
+            n_class=1, 
+            optimizer=Adam(learning_rate=10**-5),
+            default_dropout=0.2)
 # specify other extra parameters pass to the .fit
 # number of epochs is set to a large number, we'll
 # let early stopping terminate the training process
-epochs = np.linspace(10,100,10, dtype=np.int16)
-keras_fit_params = {   
-    'epochs': np.linspace(10,100, 10, dtype=np.int16),
-    'batch_size': np.linspace(10,200, 20, dtype=np.int16),
-#    'validation_data': (X_valid_all_scaled, y_valid_all),
-    'optimizer': ["adam", "sgd", "rmsprop"]
-}
+epochs = 100
+def my_learning_rate(epoch, lr):
+    return lr * np.exp(np.log(10**6)/epochs)
+lrs = LearningRateScheduler(my_learning_rate)
+
+results = []
+
+start = time()
+early_history = model_keras.fit(X_train_all_scaled, y_train_all, epochs=epochs, callbacks=[lrs], validation_data=(X_valid_all_scaled, y_valid_all), verbose=0, batch_size=100)
+t = time()-start
+results.append(early_history)
+history = pd.DataFrame(early_history.history)
+
+optimal_lr = history.loc[history.idxmin()["loss"], :]["lr"]
+
+for result in results:
+    loss = pd.DataFrame(result.history)[["val_loss", "loss"]]
+    lr = pd.DataFrame(result.history)[["lr"]]
+    fig, ax1 = plt.subplots()
+    ax1.set_xlabel("epoch")
+    ax1.set_ylabel("Loss")
+    ax1.plot(np.arange(0,100), loss)
+    ax1.set_ylim(0,10)
+    ax2 = ax1.twinx()
+    
+    ax2.set_ylabel("Learning rate")
+    ax2.set_yscale('log')
+    ax2.plot(np.arange(0,100), lr, color="red")
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.show()
+#%%
+models = []
+#hidden_layers = [(300,100,50), (100,20,30), (300,50,50,50)]
+#dropout = [(0,0.2,0.2), (0.1,0.4,0.4), (0.4,0.3,0.3)]
+hidden_layers = [(300,100), (1000,200), (1000, 500, 300, 100, 50, 25), (200,50), (2000,1000,500,100,50), (2000,100,50)]
+dropout_rates = [0.175,0.225,0.275]
+#hidden_layers=[([600])]
+#dropout_rates = [0.4]
+for layer in hidden_layers:
+    for dropout_rate in dropout_rates:
+        model_keras = KerasClassifier(
+        build_fn = build_keras_base, 
+        hidden_layers=layer, 
+        n_input=input_shape[0],
+        n_class=1, 
+        default_dropout=dropout_rate,
+        optimizer=Adam(learning_rate=0.0015, ))
+        models.append(model_keras)
+
+# number of epochs is set to a large number, we'll
+# let early stopping terminate the training process
+epochs = 200
+def step_decay(epoch): 
+   initial_lrate = 0.0015
+   drop = 0.6
+   epochs_drop = 10.0
+   lrate = initial_lrate * math.pow(drop,  
+           math.floor((1+epoch)/epochs_drop))
+   return lrate
+lrate = LearningRateScheduler(step_decay)
+from keras.callbacks import ReduceLROnPlateau
+reduce_lr = ReduceLROnPlateau(monitor="val_loss", factor=0.5  , patience=10, min_lr=0.00005, cooldown=5)
+early_stop = EarlyStopping(monitor='val_loss', patience=40, min_delta=0.001, restore_best_weights=True)
+results = []
+for model in models: 
+    start = time()
+    early_history = model.fit(X_train_all_scaled, y_train_all, epochs=epochs, callbacks=[early_stop, reduce_lr, lrate], validation_data=(X_valid_all_scaled, y_valid_all), verbose=1, batch_size=500)
+    t = time()-start
+    results.append(early_history)
+    
+#y_pred = models[0].predict(X_test_all_scaled)
+#y_pred = y_pred[:,0]
+#from lib.Plots import FullReport, PlotPerformanceMatrix
+#conf_matrix = PlotPerformanceMatrix(y_pred, y_test_all)
+
+    #b0, m0 = FullReport(rs_keras, X_test_all_scaled, y_test_all, t)
+    #results.append([b0,m0], axis=1)
+#%%
+for index, result in enumerate(results):
+    pd.DataFrame(result.history).plot(figsize=(8, 5))
+    plt.grid(True)
+    plt.gca().set_ylim(0, 1) # set the vertical range to [0-1]
+    plt.show()
+    print("Hidden layers")
+    print(hidden_layers[index // len(dropout_rates)])
+    print("Dropout rate")
+    print(dropout_rates[index % len(dropout_rates)])
+    
+for index, hidden_layer in enumerate(hidden_layers):
+    hidden_layer_score = pd.DataFrame()
+    for i in np.arange(len(dropout_rates)):
+        scores = pd.DataFrame(results[(index * len(dropout_rates)) + i].history).tail()
+        hidden_layer_score = pd.concat([hidden_layer_score, scores], axis=0)
+    hidden_layer_score_mean = hidden_layer_score.mean()
+    print("Mean values for layer: " + str(hidden_layer))
+    print(hidden_layer_score_mean)
+
+for index, dropout_rate in enumerate(dropout_rates):
+    dropout_rate_score = pd.DataFrame()
+    for i in np.arange(len(hidden_layers)):
+        scores = pd.DataFrame(results[(i * len(hidden_layers)) + index].history).tail()
+        dropout_rate_score = pd.concat([dropout_rate_score, scores], axis=0)
+    dropout_rate_score_mean = dropout_rate_score.mean()
+    print("Mean values for dropout_rate: " + str(dropout_rate))
+    print(dropout_rate_score_mean)
+#%%
+#Make confusion matrix for model performance
+cf_matrix_val_acc = pd.DataFrame(index=[str(dr) for dr in dropout_rates], columns=[str(l) for l in hidden_layers])
+cf_matrix_val_loss = pd.DataFrame(index=[str(dr) for dr in dropout_rates], columns=[str(l) for l in hidden_layers])
+for index, hidden_layer in enumerate(hidden_layers):
+    for i in np.arange(len(dropout_rates)):
+        cf_matrix_val_acc[str(hidden_layer)][str(dropout_rates[i])] = pd.DataFrame(results[(index * len(dropout_rates)) + i].history)["val_accuracy"].max()
+        cf_matrix_val_loss[str(hidden_layer)][str(dropout_rates[i])] = pd.DataFrame(results[(index * len(dropout_rates)) + i].history)["val_loss"].min()
+from lib.Plots import PlotConfusionMatrix
+PlotConfusionMatrix(cf_matrix_val_acc.astype(np.float64, copy=False))
+PlotConfusionMatrix(cf_matrix_val_loss.astype(np.float64, copy=False))
+#%%
+
+#Test for different learning rates
+#Try with singel large hidden layer of neurons
+#Have many neurons and many layers and use early stopping and other ruglarization techniques to prevent overfitting
+#Try with pyramid shape of neurons (many to few) and or first large and all others same size
+#traning iterations does not need to be tweaked - use eraly stopping instead
 
 # random search's parameter:
 # specify the options and store them inside the dictionary
@@ -306,20 +428,7 @@ keras_fit_params = {
 #    'l2_penalty': l2_penalty_opts
 #}
 
-rs_keras = RandomizedSearchCV( 
-    model_keras, 
-    param_distributions = keras_fit_params,
-    scoring = 'f1_micro',
-    n_iter = 15, 
-    cv = 3,
-    verbose = 1,
-#    n_jobs = -1
-)
-start = time()
-rs_keras.fit(X_train_all_scaled, y_train_all)
-t = time()-start
 
-b0, m0 = FullReport(rs_keras, X_test_all_scaled, y_test_all, t)
 #%%
 #    # Load the dataset
 ## Create model for KerasClassifier
