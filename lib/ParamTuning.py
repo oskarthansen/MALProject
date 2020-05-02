@@ -5,26 +5,24 @@ Created on Sun Apr 26 09:19:39 2020
 @author: valde
 """
 
-def build_keras_base(hidden_layers = [64, 64, 64], dropout_rate = [], 
+def build_keras_model(hidden_layers = [64, 64, 64], dropout_rate = [], 
                      l2_penalty = 0.1, optimizer= "adam",
-                     n_input = 100, n_class = 2, default_dropout=0.2):
+                     n_input = 100, n_class = 1, default_dropout=0.2, metrics=["accuracy"]):
  
     from keras.models import Sequential
     from keras.layers.normalization import BatchNormalization
     from keras.layers.core import Dense, Dropout, Activation
-    from keras.layers.advanced_activations import PReLU
     model = Sequential()   
     for index, layer in enumerate(hidden_layers):       
         if not index:
             # specify the input_dim to be the number of features for the first layer
-            model.add(Dense(layer, input_dim = n_input))
+            model.add(Dense(layer, input_dim = n_input, kernel_initializer="he_normal", activation="elu"))
         else:
-            model.add(Dense(layer))
+            model.add(Dense(layer, kernel_initializer="he_normal", activation="elu"))
         
         # insert BatchNorm layer immediately after fully connected layers
         # and before activation layer
-        model.add(BatchNormalization())
-        model.add(PReLU())        
+        model.add(BatchNormalization())    
         if dropout_rate and index < len(dropout_rate):
             model.add(Dropout(rate = dropout_rate[index]))
         else:
@@ -35,11 +33,9 @@ def build_keras_base(hidden_layers = [64, 64, 64], dropout_rate = [],
     model.add(Activation('sigmoid'))
     
     # the loss for binary and muti-class classification is different 
-    loss = 'binary_crossentropy'
-    if n_class > 2:
-        loss = 'categorical_crossentropy'
+    loss = 'mean_squared_error'
     
-    model.compile(loss = loss, metrics = ['accuracy'], optimizer=optimizer)   
+    model.compile(loss = loss, optimizer=optimizer, metrics=metrics)   
     return model
 
 

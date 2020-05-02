@@ -105,8 +105,10 @@ def PlotPerformanceMatrix(y_pred, y_true):
     plt.figure(figsize = (10,7))
     sn.heatmap(df, annot=True, cmap="gray")
     return matrix
-def PlotConfusionMatrix(df):
+def PlotConfusionMatrix(df, title):
     import seaborn as sn 
     import matplotlib.pyplot as plt
-    plt.figure(figsize=(10,7))
-    sn.heatmap(df, annot=True, cmap="gray", fmt="d")
+    ax = plt.axes()
+    sn.heatmap(df, annot=True, cmap="gray", ax=ax, fmt='.4f')
+    ax.set_title(title)
+    plt.show()
