@@ -517,7 +517,7 @@ print("DecisionTreeRegressor")
 
 scores = cross_val_score(tree_reg, X_test_all_scaled, y_test_all, scoring="neg_mean_squared_error", cv=10)
 tree_rmse_scores = np.sqrt(-scores)
-display_scores(tree_rmse_scores)
+display_scores(-scores)
 
 #%% RandomForestRegressor
 from sklearn.ensemble import RandomForestRegressor
@@ -529,7 +529,7 @@ print("RandomForestRegressor")
 
 scores = cross_val_score(forest_reg, X_test_all_scaled, y_test_all, scoring="neg_mean_squared_error", cv=10)
 forest_rmse_scores = np.sqrt(-scores)
-display_scores(forest_rmse_scores)
+display_scores(-scores)
 
 #%% SVM poly
 from sklearn.svm import SVR
@@ -540,4 +540,4 @@ svm_poly_reg.fit(X_test_all_scaled, y_test_all)
 print("Support Vector Regression - Polynomial model")
 scores = cross_val_score(svm_poly_reg, X_test_all_scaled, y_test_all, scoring="neg_mean_squared_error", cv=10)
 svm_poly_rmse_scores = np.sqrt(-scores)
-display_scores(svm_poly_rmse_scores)
+display_scores(-scores)
