@@ -92,3 +92,23 @@ def FullReport(model, X_test, y_test, t):
     print(f"CTOR for best model: {bestmodel}\n")
     print(f"{beststr}\n")
     return beststr, bestmodel
+def PlotPerformanceMatrix(y_pred, y_true):
+    import seaborn as sn
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    tp = sum(y_true[(y_pred == y_true) & (y_true == 1)])
+    fp = sum(y_pred[(y_pred == 1) & (y_true == 0)])
+    tn = sum(sum([(y_pred == 0) & (y_true == 0)]))
+    fn = sum(sum([(y_pred == 0) & (y_true == 1)]))
+    matrix = [[tp, fp], [fn, tn]]
+    df = pd.DataFrame(matrix, index=[1,0], columns=[1,0])
+    plt.figure(figsize = (10,7))
+    sn.heatmap(df, annot=True, cmap="gray")
+    return matrix
+def PlotConfusionMatrix(df, title):
+    import seaborn as sn 
+    import matplotlib.pyplot as plt
+    ax = plt.axes()
+    sn.heatmap(df, annot=True, cmap="gray", ax=ax, fmt='.4f')
+    ax.set_title(title)
+    plt.show()
