@@ -2,7 +2,7 @@
 
 from DataLoad import load_data
 from dataCleanUp import scaleGroup, replaceGroup
-
+from Plots import FullReport
 
 
 import pandas as pd
@@ -478,3 +478,66 @@ PlotConfusionMatrix(cf_matrix_test_loss.astype(np.float64, copy=False), title="T
 #params = random_search.cv_results_['params']
 #for mean, stdev, param in zip(means, stds, params):
 #    print("%f (%f) with: %r" % (mean, stdev, param))
+
+#%% Display scores
+
+
+def display_scores(scores):
+    print("Scores:", scores)
+    print("Scores mean:", scores.mean())
+    print("Standard deviation:", scores.std())
+
+from sklearn.model_selection import cross_val_score
+
+
+
+#%% Regression model
+
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+X_predict_test = X_test_all[:20]
+
+lin_reg = LinearRegression()
+lin_reg.fit(X_train_all_scaled, y_train_all)
+
+print("LinearRegression")
+
+scores = cross_val_score(lin_reg, X_test_all_scaled, y_test_all, scoring="neg_mean_squared_error", cv=10)
+lin_rmse_scores = np.sqrt(-scores)
+
+display_scores(-scores)
+#%% DecisionTreeRegressor
+
+from sklearn.tree import DecisionTreeRegressor
+tree_reg = DecisionTreeRegressor()
+tree_reg.fit(X_train_all_scaled, y_train_all)
+
+print("DecisionTreeRegressor")
+
+scores = cross_val_score(tree_reg, X_test_all_scaled, y_test_all, scoring="neg_mean_squared_error", cv=10)
+tree_rmse_scores = np.sqrt(-scores)
+display_scores(-scores)
+
+#%% RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor
+forest_reg = RandomForestRegressor()
+
+forest_reg.fit(X_train_all_scaled, y_train_all)
+
+print("RandomForestRegressor")
+
+scores = cross_val_score(forest_reg, X_test_all_scaled, y_test_all, scoring="neg_mean_squared_error", cv=10)
+forest_rmse_scores = np.sqrt(-scores)
+display_scores(-scores)
+
+#%% SVM poly
+from sklearn.svm import SVR
+
+svm_poly_reg = SVR(kernel='poly', C=100, gamma='auto', degree=389, epsilon=.1, coef0=1)
+svm_poly_reg.fit(X_test_all_scaled, y_test_all)
+
+print("Support Vector Regression - Polynomial model")
+scores = cross_val_score(svm_poly_reg, X_test_all_scaled, y_test_all, scoring="neg_mean_squared_error", cv=10)
+svm_poly_rmse_scores = np.sqrt(-scores)
+display_scores(-scores)
