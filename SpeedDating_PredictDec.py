@@ -4,7 +4,6 @@ from DataLoad import load_data
 from dataCleanUp import scaleGroup, replaceGroup
 
 
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -66,7 +65,6 @@ data = replaceGroup(data, scaledColumns)
 #Correlation bewteen what you see as important vs how you rate the other person and if this correlates to a match
 self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
 
-
 date_score = data[['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
 
 diff_before =  self_look_for_before.values - date_score
@@ -76,7 +74,6 @@ def calcLength(row):
     return (row.values ** 2).mean() ** .5
 
 lookfor_before_vs_datescore_diff = diff_before.apply(calcLength, axis=1)
-#lookfor_after1_vs_datescore_diff = diff_after_1.apply(calcLength, axis=1)
 
 #Invert scaling
 lookfor_before_vs_datescore_diff = 100 - lookfor_before_vs_datescore_diff
@@ -87,6 +84,23 @@ data = pd.concat([data, pd.DataFrame(lookfor_before_vs_datescore_diff)], axis=1)
 corr = data.corr()
 corr_dec = corr['dec'].sort_values(ascending=False)
 corr_match = corr["match"].sort_values(ascending=False)
+
+
+
+# self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
+# date_score = data[['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
+
+# scaled_date_score = date_score * self_look_for_before.values
+# scaled_date_score.columns = [ s + '_s' for s in ['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
+# data = pd.concat([data, scaled_date_score], axis=1)
+
+# data = data.drop(list(data.filter(regex="field")), axis=1)
+# data = data.drop(list(data.filter(regex="goal")), axis=1)
+# data = data.drop(list(data.filter(regex="race")), axis=1)
+# data = data.drop(list(data.filter(regex="2_1")), axis=1)
+# data = data.drop(list(data.filter(regex="1_1")), axis=1)
+
+
 
 
 ##%% Check to see what the different genders value most on paper
@@ -193,7 +207,6 @@ corr_match = corr["match"].sort_values(ascending=False)
 #PlotBarSeries(df,"prob mean-value" ,"Average probability for other say yes for dec=yes and dec=no")
     
 
-#%%
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
@@ -206,18 +219,15 @@ def remove_by_contains(searchString, inputData):
 # Remove data from "other" person. (The other persons opinion)
 data_algorithm = remove_by_contains('_o', data_algorithm)
 
-#Generate full dataset
+#Generate full dataset with labels and features
 features_all = data_algorithm.drop('dec', axis=1)
 labels_all = data_algorithm.dec
-
-X_train_all, X_test_all, y_train_all, y_test_all = train_test_split(features_all, labels_all, test_size=0.15, random_state=42)
-X_train_all, X_valid_all, y_train_all, y_valid_all = train_test_split(X_train_all, y_train_all, test_size=0.15, random_state=42)
-
 # Scaling the data
 scaler = MinMaxScaler()
-X_train_all_scaled = scaler.fit_transform(X_train_all)
-X_valid_all_scaled = scaler.transform(X_valid_all)
-X_test_all_scaled = scaler.transform(X_test_all)
+features_all = scaler.fit_transform(features_all)
+#
+X_train_all, X_test_all, y_train_all, y_test_all = train_test_split(features_all, labels_all, test_size=0.15, random_state=42)
+X_train_all, X_valid_all, y_train_all, y_valid_all = train_test_split(X_train_all, y_train_all, test_size=0.15, random_state=42)
 
 
 #%%For both genders with same model
@@ -271,7 +281,7 @@ X_test_all_scaled = scaler.transform(X_test_all)
 #pred_dec = model.predict(X_train_all_scaled)
 
 #%% Find optimale lear
-from lib.ParamTuning import build_keras_model
+from ParamTuning import build_keras_model
 from keras.wrappers.scikit_learn import KerasClassifier
 from time import time
 from keras.optimizers import Adam
@@ -283,7 +293,7 @@ input_shape = X_train_all.shape[1:]
 #dropout = [(0,0.2,0.2), (0.1,0.4,0.4), (0.4,0.3,0.3)]
 models = []
 model_keras = KerasClassifier(
-            build_fn = build_keras_base, 
+            build_fn = build_keras_model, 
             hidden_layers=[300,100], 
             dropout_rate=[0.2,0.2],
             n_input=input_shape[0],
@@ -301,7 +311,7 @@ lrs = LearningRateScheduler(my_learning_rate)
 results = []
 
 start = time()
-early_history = model_keras.fit(X_train_all_scaled, y_train_all, epochs=epochs, callbacks=[lrs], validation_data=(X_valid_all_scaled, y_valid_all), verbose=0, batch_size=100)
+early_history = model_keras.fit(X_train_all, y_train_all, epochs=epochs, callbacks=[lrs], validation_data=(X_valid_all, y_valid_all), verbose=0, batch_size=100)
 t = time()-start
 results.append(early_history)
 history = pd.DataFrame(early_history.history)
@@ -327,16 +337,25 @@ for result in results:
 from keras import backend as K
 K.clear_session()
 import tensorflow as tf
-config = tf.compat.v1.ConfigProto( device_count = {'GPU': 1 , 'CPU': 8} ) 
+config = tf.compat.v1.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} ) 
 sess = tf.compat.v1.Session(config=config) 
 K.set_session(sess)
 
+from ParamTuning import build_keras_model
+from keras.wrappers.scikit_learn import KerasClassifier
+from time import time
+from keras.optimizers import Nadam
+from keras.callbacks import EarlyStopping, LearningRateScheduler
+import math
 
-from lib.ParamTuning import build_keras_model
+input_shape = X_train_all.shape[1:]
+
+from ParamTuning import build_keras_model
 models = []
-hidden_layers = [(200,200),(300,100), (175,175)]
+# hidden_layers = [(200,200),(300,100)]
 # hidden_layers = [(300,100)]
-dropout_rates = [0.1, 0.15, 0.2]
+hidden_layers = [(2000,1000,500,300,100, 50), (1000,500,300,100,50)]
+dropout_rates = [0.3]
 for layer in hidden_layers:
     for dropout_rate in dropout_rates:
         model_keras = build_keras_model(
@@ -344,7 +363,7 @@ for layer in hidden_layers:
         n_input=input_shape[0],
         n_class=1, 
         default_dropout=dropout_rate,
-        optimizer=Adam(learning_rate=0.0015),
+        optimizer=Nadam(learning_rate=0.0015),
         metrics=["accuracy"])
         models.append(model_keras)
 
@@ -365,9 +384,10 @@ lrate = LearningRateScheduler(step_decay)
 
 early_stop = EarlyStopping(monitor='val_loss', patience=40, min_delta=0.001, restore_best_weights=True)
 results = []
+
 for model in models: 
     start = time()
-    early_history = model.fit(X_train_all_scaled, y_train_all, epochs=epochs, callbacks=[early_stop, lrate], validation_data=(X_valid_all_scaled, y_valid_all), verbose=1, batch_size=30)
+    early_history = model.fit(X_train_all, y_train_all, epochs=epochs, callbacks=[early_stop, lrate], validation_data=(X_valid_all, y_valid_all), verbose=1, batch_size=10, n_jobs=-1)
     t = time()-start
     results.append(early_history)
     
@@ -413,30 +433,50 @@ cf_matrix_val_loss = pd.DataFrame(index=[str(dr) for dr in dropout_rates], colum
 cf_matrix_val_loss_vs_loss = pd.DataFrame(index=[str(dr) for dr in dropout_rates], columns=[str(l) for l in hidden_layers])
 cf_matrix_test_acc = pd.DataFrame(index=[str(dr) for dr in dropout_rates], columns=[str(l) for l in hidden_layers])
 cf_matrix_test_loss = pd.DataFrame(index=[str(dr) for dr in dropout_rates], columns=[str(l) for l in hidden_layers])
+
 for index, hidden_layer in enumerate(hidden_layers):
     for i in np.arange(len(dropout_rates)):
         cf_matrix_val_acc[str(hidden_layer)][str(dropout_rates[i])] = pd.DataFrame(results[(index * len(dropout_rates)) + i].history)["val_accuracy"].max()
         cf_matrix_val_loss[str(hidden_layer)][str(dropout_rates[i])] = pd.DataFrame(results[(index * len(dropout_rates)) + i].history)["val_loss"].min()
         cf_matrix_val_loss_vs_loss[str(hidden_layer)][str(dropout_rates[i])] = pd.DataFrame(results[(index * len(dropout_rates)) + i].history)["val_loss"].tail(1).values[0] - pd.DataFrame(results[(index * len(dropout_rates)) + i].history)["loss"].tail(1).values[0]
-        y_pred = models[(index * len(dropout_rates)) + i].predict(X_test_all_scaled);
+        y_pred = models[(index * len(dropout_rates)) + i].predict(X_test_all);
         y_pred = y_pred[:,0]
         y_pred = y_pred.round()
         cf_matrix_test_acc[str(hidden_layer)][str(dropout_rates[i])] = accuracy_score(y_test_all, y_pred)
         cf_matrix_test_loss[str(hidden_layer)][str(dropout_rates[i])] = mean_squared_error(y_test_all, y_pred)
+        
+        
 
 #%%
-from lib.Plots import PlotConfusionMatrix
+from Plots import PlotConfusionMatrix
 PlotConfusionMatrix(cf_matrix_val_acc.astype(np.float64, copy=False), title="Validation accuracy")
 PlotConfusionMatrix(cf_matrix_val_loss.astype(np.float64, copy=False), title="Validation loss")
-# PlotConfusionMatrix(cf_matrix_val_loss_vs_loss.astype(np.float64, copy=False), title="Validation loss - loss")
+PlotConfusionMatrix(cf_matrix_val_loss_vs_loss.astype(np.float64, copy=False), title="Validation loss - loss")
 PlotConfusionMatrix(cf_matrix_test_acc.astype(np.float64, copy=False), title="Test accuracy")
 PlotConfusionMatrix(cf_matrix_test_loss.astype(np.float64, copy=False), title="Test loss")
-#%% With random search CV
 
 
+#%% Plot confusuio matrix
+from Plots import PlotPerformanceMatrix
+for model in models:
+    y_pred = model.predict(X_test_all)
+    y_pred = y_pred[:,0]
+    y_pred = y_pred.round()
+    PlotPerformanceMatrix(y_pred, y_test_all)
 
+#%%Plot
+from Plots import PlotClasswiseSeries
+model = models[0]
+y_pred = model.predict(X_test_all)
+y_pred = y_pred[:,0]
+PlotClasswiseSeries(y_pred, y_test_all)
 
-
+#%% Cross val score
+from sklearn.model_selection import cross_val_score
+scores = []
+for index, model in enumerate(models):
+    score = cross_val_score(model, X_train_all, y_train_all, scoring="neg_mean_squared_error")
+    scores[index] = score
 #%%
 #    # Load the dataset
 ## Create model for KerasClassifier

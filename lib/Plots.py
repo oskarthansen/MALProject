@@ -5,7 +5,7 @@ Created on Thu Apr 16 14:11:00 2020
 @author: valde
 """
 
-def PlotBarSeries(dataframe, yaxis_title, title):
+def PlotBarSeries(dataframe, yaxis_title, title, ylim):
     import matplotlib.pyplot as plt
     import numpy as np
     
@@ -21,7 +21,7 @@ def PlotBarSeries(dataframe, yaxis_title, title):
     ax.set_xticks(x)
     ax.set_xticklabels(dataframe.columns)
     ax.legend()
-    
+    ax.set_ylim(ylim)
     fig.tight_layout()
     
     plt.show()
@@ -103,7 +103,10 @@ def PlotPerformanceMatrix(y_pred, y_true):
     matrix = [[tp, fp], [fn, tn]]
     df = pd.DataFrame(matrix, index=[1,0], columns=[1,0])
     plt.figure(figsize = (10,7))
-    sn.heatmap(df, annot=True, cmap="gray")
+    ax = plt.axes()
+    sn.heatmap(df, annot=True, cmap="gray", fmt='.0f')
+    ax.set_xlabel("True value")
+    ax.set_ylabel("Predicted value")
     return matrix
 def PlotConfusionMatrix(df, title):
     import seaborn as sn 
@@ -112,3 +115,27 @@ def PlotConfusionMatrix(df, title):
     sn.heatmap(df, annot=True, cmap="gray", ax=ax, fmt='.4f')
     ax.set_title(title)
     plt.show()
+    
+def PlotClasswiseSeries(y_pred, y_true):
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    df = pd.DataFrame({
+        'y_pred': y_pred,
+        'y_true': y_true
+        })
+    df.sort_values(by=['y_pred'])
+    fig=plt.figure()
+    ax=fig.add_axes([0,0,1,1])
+    z = df[['y_true']].to_numpy().astype(int)
+    colors = ["#0000ff", "#ff0000"]
+    c = [colors[i] for i in z[:,0]]
+    x = df[['y_pred']].to_numpy()
+    y = df[['y_true']].to_numpy()
+    ax.scatter(x, y, c=c, marker='x', alpha=0.2)
+    ax.set_xlabel('Predicted value')
+    ax.set_ylabel('True value')
+    ax.set_title('Predicted values for dec')
+    plt.show()
+
+    

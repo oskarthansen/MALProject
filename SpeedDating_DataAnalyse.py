@@ -4,14 +4,14 @@ Created on Tue Mar  3 14:31:27 2020
 
 @author: valde
 """
-from lib.DataLoad import load_data
-from lib.dataCleanUp import scaleGroup, replaceGroup
+from DataLoad import load_data
+from dataCleanUp import scaleGroup, replaceGroup
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 raw_data = load_data()
-#data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', "career_c", 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
+data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', "career_c", 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
 #data = data[data.columns.drop(list(data.filter(regex='_3')))]
 
 #%%
@@ -57,7 +57,7 @@ shar = raw_data[["shar","iid"]]
 #Alternative way to filter away columns with to many NaN values.
 #Preserve shar value
 from sklearn.impute import SimpleImputer
-imputer = SimpleImputer(strategy='constant', fill_value=0)
+imputer = SimpleImputer(strategy='mean')
 imputer.fit(raw_data[["shar", "shar_o"]])
 shar = pd.DataFrame(imputer.transform(raw_data[["shar", "shar_o"]]), columns=["shar", "shar_o"], index=raw_data.index)
 raw_data = replaceGroup(raw_data, shar)
@@ -129,11 +129,28 @@ lookfor_before_vs_datescore_diff.name = "lookfor_before_vs_datescore_diff"
 
 data = pd.concat([data, pd.DataFrame(lookfor_before_vs_datescore_diff)], axis=1)
 
-corr = data.corr()
+
+#%%
+self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
+date_score = data[['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
+
+scaled_date_score = date_score * self_look_for_before.values
+scaled_date_score.columns = [ s + '_s' for s in ['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
+data = pd.concat([data, scaled_date_score], axis=1)
+
+data_algorithm = data.drop(['match', 'iid', "id","idg", "condtn", "wave", "round", "position", "partner", "pid", "career_c", "sports", "tvsports", 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga'], axis=1)
+data1 = data_algorithm.drop(list(data_algorithm.filter(regex="field")), axis=1)
+data1 = data1.drop(list(data1.filter(regex="goal")), axis=1)
+data1 = data1.drop(list(data1.filter(regex="_o")), axis=1)
+data1 = data1.drop(list(data1.filter(regex="race")), axis=1)
+
+corr = data1.corr()
 corr_dec = corr['dec'].sort_values(ascending=False)
-corr_match = corr["match"].sort_values(ascending=False)
 
-
+plt.subplots(figsize=(20,15))
+ax = plt.axes()
+ax.set_title("Correlation Heatmap")
+sns.heatmap(corr,xticklabels=corr.columns.values,yticklabels=corr.columns.values)
 #%% Check to see what the different genders value most on paper
 from Plots import PlotBarSeries
 male_rows = data[data['gender'] == 1]
@@ -145,20 +162,20 @@ self_look_for_before_average_male = male_avg[['attr1_1', 'sinc1_1', 'intel1_1', 
 self_look_for_before_average_female = female_avg[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
 dataframe = pd.concat([self_look_for_before_average_male, self_look_for_before_average_female],axis=1).T
 dataframe.index = ["male", "female"]
-PlotBarSeries(dataframe, "Mean value","Attribute value mean by gender (round 1_1)")
+PlotBarSeries(dataframe, "Mean value","Attribute value mean by gender (round 1_1)", [0,30])
 
 
 #%% Mean values by attribute for dec = 1
 all_dec_1_male = data[(data["dec"] == 1) & (data["gender"] == 1)]
 all_dec_1_female = data[(data["dec"] == 1) & (data["gender"] == 0)]
 
-attrs = ['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']
+attrs = ['attr', 'sinc', 'intel', 'fun', 'amb', 'shar', 'like']
 
 male_attrs_dec_avg = all_dec_1_male[attrs]
 female_attrs_dec_avg = all_dec_1_female[attrs]
 dataframe = pd.concat([male_attrs_dec_avg.mean(), female_attrs_dec_avg.mean()], axis=1).T
 dataframe.index = ["male", "female"]
-PlotBarSeries(dataframe, "Score mean value", "Date score mean value for dec=1")
+PlotBarSeries(dataframe, "Score mean value", "Date score mean value for dec=1", [0,10])
 
 all_dec_0_male = data[(data["dec"] == 0) & (data["gender"] == 1)]
 all_dec_0_female = data[(data["dec"] == 0) & (data["gender"] == 0)]
@@ -167,7 +184,7 @@ male_attrs_dec_avg = all_dec_0_male[attrs]
 female_attrs_dec_avg = all_dec_0_female[attrs]
 dataframe = pd.concat([male_attrs_dec_avg.mean(), female_attrs_dec_avg.mean()], axis=1).T
 dataframe.index = ["male", "female"]
-PlotBarSeries(dataframe, "Score mean value", "Date score mean value for dec=0")
+PlotBarSeries(dataframe, "Score mean value", "Date score mean value for dec=0", [0,10])
 
 #%% Mean values by attribute for dec = 1 compared to what men/women say they want
 
@@ -177,14 +194,14 @@ PlotBarSeries(dataframe, "Score mean value", "Date score mean value for dec=0")
 from Plots import PlotHeatmap
 dec_yes = data[data["dec"] == 1]
 dec_no = data[data["dec"] == 0]
-dec_yes_attr = dec_yes[attrs + ["like"]]
-dec_no_attr = dec_no[attrs + ["like"]]
+dec_yes_attr = dec_yes[attrs]
+dec_no_attr = dec_no[attrs]
 dec_yes_mean = pd.DataFrame(dec_yes_attr.mean()).T
 dec_yes_mean.index = ["Yes"]
 dec_no_mean = pd.DataFrame(dec_no_attr.mean()).T
 dec_no_mean.index = ["No"]
 df = pd.concat([dec_yes_mean, dec_no_mean], axis=0)
-PlotBarSeries(df, "Mean rating", "Mean rating of partner for yes and no")
+PlotBarSeries(df, "Mean rating", "Mean rating of partner for yes and no", [0,10])
 
 corr_yes = dec_yes_attr.corr()
 corr_no = dec_no_attr.corr()
