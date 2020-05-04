@@ -549,9 +549,9 @@ def display_scores(scores, model):
     print("Crossvalidation: Mean MSE:", scores.mean())
     print("Crossvalidation: Standard deviation:", scores.std())
     
-    model.fit(X_train_all_scaled, y_train_all)
+    model.fit(X_train_all, y_train_all)
     
-    y_pred_train = model.predict(X_train_all_scaled)
+    y_pred_train = model.predict(X_train_all)
     y_true_train = y_train_all
     y_pred_train = y_pred_train.round()
     mse_train = mean_squared_error(y_true_train, y_pred_train)
@@ -559,7 +559,7 @@ def display_scores(scores, model):
     print("Trainset MSE:", mse_train)
     print("Trainset Accuracy:", accuracy_train)
     
-    y_pred_test = model.predict(X_test_all_scaled)
+    y_pred_test = model.predict(X_test_all)
     y_true_test = y_test_all
     y_pred_test = y_pred_test.round()
     mse_test = mean_squared_error(y_true_test, y_pred_test)
