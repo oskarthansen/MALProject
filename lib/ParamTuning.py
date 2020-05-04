@@ -15,26 +15,20 @@ def build_keras_model(hidden_layers = [64, 64, 64], dropout_rate = [],
     model = Sequential()   
     for index, layer in enumerate(hidden_layers):       
         if not index:
-            # specify the input_dim to be the number of features for the first layer
             model.add(Dense(layer, input_dim = n_input, kernel_initializer="he_normal", activation="elu"))
         else:
             model.add(Dense(layer, kernel_initializer="he_normal", activation="elu"))
         
-        # insert BatchNorm layer immediately after fully connected layers
-        # and before activation layer
         model.add(BatchNormalization())    
         if dropout_rate and index < len(dropout_rate):
             model.add(Dropout(rate = dropout_rate[index]))
         else:
             model.add(Dropout(rate = default_dropout))
             
-    
     model.add(Dense(n_class))
     model.add(Activation('sigmoid'))
     
-    # the loss for binary and muti-class classification is different 
     loss = 'mean_squared_error'
-    
     model.compile(loss = loss, optimizer=optimizer, metrics=metrics)   
     return model
 
