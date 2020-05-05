@@ -108,6 +108,13 @@ def PlotPerformanceMatrix(y_pred, y_true):
     ax.set_xlabel("True value")
     ax.set_ylabel("Predicted value")
     return matrix
+def getPerformanceMetrics(y_pred, y_true): 
+    tp = sum(y_true[(abs(y_pred) == y_true) & (y_true == 1)])
+    fp = sum(y_pred[(y_pred == 1) & (y_true == 0)])
+    tn = sum(sum([(y_pred == 0) & (y_true == 0)]))
+    fn = sum(sum([(y_pred == 0) & (y_true == 1)]))
+    return tp, fp, tn, fn
+    
 def PlotConfusionMatrix(df, title):
     import seaborn as sn 
     import matplotlib.pyplot as plt
