@@ -364,28 +364,6 @@ for index, model in enumerate(models):
     scores[index] = score
 
 
-
-#%%
-
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
-
-from Plots import getPerformanceMetrics
-
-
-def plot_learning_curves(model, X, y):
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
-    train_errors, val_errors = [], []
-    for m in range(1, len(X_train)):
-        model.fit(X_train[:m], y_train[:m])
-        y_train_predict = model.predict(X_train[:m])
-        y_val_predict = model.predict(X_val)
-        train_errors.append(mean_squared_error(y_train[:m], y_train_predict))
-        val_errors.append(mean_squared_error(y_val, y_val_predict))
-        
-    plt.plot(np.sqrt(train_errors), "r-+", linewidth=2, label="train")
-    plt.plot(np.sqrt(val_errors), "b-", linewidth=3, label="val")
-
 #%% Display scores
 
 from sklearn.metrics import accuracy_score
@@ -428,12 +406,8 @@ lin_reg = LinearRegression()
 
 print("LinearRegression")
 
-scores = cross_val_score(lin_reg, X_train_all_scaled, y_train_all, scoring="neg_mean_squared_error", cv=10)
+scores = cross_val_score(lin_reg, X_train_all, y_train_all, scoring="neg_mean_squared_error", cv=10)
 display_scores(-scores, lin_reg)
-
-
-
-
 
 
 #%% DecisionTreeRegressor
@@ -448,7 +422,7 @@ param_dist = {'max_depth': sp_randint(2,16),
               'min_samples_split': sp_randint(2,16)}
 
 rnd_search = RandomizedSearchCV(tree_reg, param_distributions=param_dist, n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
-rnd_search.fit(X_train_all_scaled, y_train_all)
+rnd_search.fit(X_train_all, y_train_all)
 
 rnd_search.best_estimator_
 tree_reg = DecisionTreeRegressor(criterion='mse', max_depth=4, max_features=None,
@@ -459,7 +433,7 @@ tree_reg = DecisionTreeRegressor(criterion='mse', max_depth=4, max_features=None
 
 print("DecisionTreeRegressor")
 
-scores = cross_val_score(tree_reg, X_train_all_scaled, y_train_all, scoring="neg_mean_squared_error", cv=10)
+scores = cross_val_score(tree_reg, X_train_all, y_train_all, scoring="neg_mean_squared_error", cv=10)
 display_scores(-scores)
 
 #%% RandomForestRegressor
@@ -478,49 +452,15 @@ param_distribs = {
 forest_reg = RandomForestRegressor(random_state=42)
 
 rnd_search = RandomizedSearchCV(forest_reg, param_distributions=param_distribs, n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
-rnd_search.fit(X_train_all_scaled, y_train_all)
+rnd_search.fit(X_train_all, y_train_all)
 
 rnd_search.best_estimator_
 forest_reg = rnd_search.best_estimator_
 
-scores = cross_val_score(forest_reg, X_train_all_scaled, y_train_all, scoring="neg_mean_squared_error", cv=10)
+scores = cross_val_score(forest_reg, X_train_all, y_train_all, scoring="neg_mean_squared_error", cv=10)
 display_scores(-scores, forest_reg)
 
 print("RandomForestRegressor")
-
-
-
-
-forest_reg = RandomForestRegressor(random_state=42)
-parameters = { 'max_features':np.arange(5,10),'n_estimators':[500],'min_samples_leaf': [10,50,100,200,500]}
-
-random_grid = GridSearchCV(forest_reg, parameters, cv = 5)
-random_grid.fit(X_train_all_scaled, y_train_all)
-
-forest_reg = random_grid.best_estimator_
-
-scores = cross_val_score(forest_reg, X_train_all_scaled, y_train_all, scoring="neg_mean_squared_error", cv=10)
-display_scores(-scores, forest_reg)
-
-
-
-#scores = cross_val_score(forest_reg, X_train_all_scaled, y_train_all, scoring="neg_mean_squared_error", cv=10)
-#display_scores(-scores, forest_reg)
-#
-#result = forest_reg.fit(X_train_all_scaled, y_train_all)
-#y_pred = forest_reg.predict(X_test_all_scaled)
-#y_true = y_test_all
-#y_pred = y_pred.round()
-#mse = mean_squared_error(y_true, y_pred)
-
-#from sklearn.metrics import accuracy_score
-#accuracy_score(y_true, y_pred)
-#
-#pd.DataFrame(result.history).plot(figsize=(8, 5)) 
-#plt.grid(True) 
-#plt.gca().set_ylim(0, 1) # set the vertical range to [0-1] plt.show()
-#
-#plot_learning_curves(forest_reg, X_train_all_scaled, y_train_all)
 
 
 #%% SVM poly
@@ -530,7 +470,7 @@ svm_poly_reg = SVR(kernel='poly', gamma='auto', degree=2, epsilon=0.1, coef0=1)
 svm_poly_reg.fit(X_train_all_scaled, y_train_all)
 
 print("Support Vector Regression - Polynomial model")
-scores = cross_val_score(svm_poly_reg, X_train_all_scaled, y_train_all, scoring="neg_mean_squared_error", cv=10)
+scores = cross_val_score(svm_poly_reg, X_train_all, y_train_all, scoring="neg_mean_squared_error", cv=10)
 svm_poly_rmse_scores = np.sqrt(-scores)
 display_scores(-scores)
 
@@ -541,23 +481,8 @@ from sklearn.linear_model import LogisticRegression
 #softmax_reg = LogisticRegression(multi_class="multinomial",solver="lbfgs", C=10)
 
 log_reg = LogisticRegression()
-log_reg.fit(X_train_all_scaled, y_train_all)
+log_reg.fit(X_train_all, y_train_all)
 
 
-scores = cross_val_score(log_reg, X_train_all_scaled, y_train_all, scoring="neg_mean_squared_error", cv=10)
+scores = cross_val_score(log_reg, X_train_all, y_train_all, scoring="neg_mean_squared_error", cv=10)
 display_scores(-scores)
-
-
-#%% Regressor tuning
-
-from sklearn.model_selection import RandomizedSearchCV
-
-
-
-clf = RandomizedSearchCV(logistic, hyperparameters, random_state=1, n_iter=100, cv=5, verbose=0, n_jobs=-1)
-# Fit randomized search
-best_model = clf.fit(X, y)
-
-# View best hyperparameters
-print('Best Penalty:', best_model.best_estimator_.get_params()['penalty'])
-print('Best C:', best_model.best_estimator_.get_params()['C'])
