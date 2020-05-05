@@ -311,14 +311,50 @@ forest_reg = rnd_search.best_estimator_
 # display_scores(-scores, forest_reg)
 
 
-#%%Plot
+#%%Plot histogram for results
 from Plots import PlotClasswiseSeries2
+import matplotlib.pyplot as plt
 y_pred2 = forest_reg.predict(X_test_all)
 model = models[0]
 y_pred1 = model.predict(X_test_all)
 y_pred1 = y_pred1[:,0]
 num_outliers = sum(((y_pred1 > 0.6) & (y_test_all == 0)) | ((y_pred1 < 0.4) & (y_test_all == 1)))
-PlotClasswiseSeries2(y_pred1, y_pred2, y_test_all)
+# PlotClasswiseSeries2(y_pred1, y_pred2, y_test_all)
+nn_true_1 = y_pred1[y_test_all.astype(bool)]
+nn_true_0 = y_pred1[~(y_test_all).astype(bool)]
+rf_true_1 = y_pred2[y_test_all.astype(bool)]
+rf_true_0 = y_pred2[~(y_test_all).astype(bool)]
+plt.xlim([0,1])
+plt.ylim([0,210])
+plt.hist(nn_true_1, bins=15, color="g")
+plt.title("NN - y_true = 1")
+plt.ylabel("Num predictions")
+plt.xlabel("Predicted value")
+plt.xlim([0,1])
+plt.ylim([0,210])
+plt.show()
+plt.hist(nn_true_0, bins=15, color="r")
+plt.title("NN - y_true = 0")
+plt.ylabel("Num predictions")
+plt.xlabel("Predicted value")
+plt.xlim([0,1])
+plt.ylim([0,210])
+plt.show()
+plt.hist(rf_true_1, bins=15, color="g")
+plt.title("RF - y_true = 1")
+plt.ylabel("Num predictions")
+plt.xlabel("Predicted value")
+plt.xlim([0,1])
+plt.ylim([0,210])
+plt.show()
+plt.hist(rf_true_0, bins=15, color="r")
+plt.title("RF - y_true = 0")
+plt.ylabel("Num predictions")
+plt.xlabel("Predicted value")
+plt.xlim([0,1])
+plt.ylim([0,210])
+plt.show()
+#%% Pot histogram for results
 
 #%% Cross val score
 from sklearn.model_selection import cross_val_score
@@ -326,6 +362,7 @@ scores = []
 for index, model in enumerate(models):
     score = cross_val_score(model, X_train_all, y_train_all, scoring="neg_mean_squared_error")
     scores[index] = score
+
 
 
 #%%
