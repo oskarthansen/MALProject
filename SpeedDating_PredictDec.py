@@ -8,9 +8,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 raw_data = load_data()
-#data = raw_data.drop(['id', 'idg', 'partner', 'position', 'positin1', 'career', "career_c", 'field', 'undergra', 'tuition', 'from', 'zipcode', 'income', 'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing','reading', 'tv', 'theater', 'movies','concerts', 'music', 'shopping', 'yoga', 'income', 'mn_sat' ], axis=1)
-#data = data[data.columns.drop(list(data.filter(regex='_3')))]
-
 
 from sklearn.impute import SimpleImputer
 imputer = SimpleImputer(strategy='constant', fill_value=0)
@@ -84,127 +81,6 @@ data = pd.concat([data, pd.DataFrame(lookfor_before_vs_datescore_diff)], axis=1)
 corr = data.corr()
 corr_dec = corr['dec'].sort_values(ascending=False)
 corr_match = corr["match"].sort_values(ascending=False)
-
-
-
-# self_look_for_before = data[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
-# date_score = data[['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
-
-# scaled_date_score = date_score * self_look_for_before.values
-# scaled_date_score.columns = [ s + '_s' for s in ['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']]
-# data = pd.concat([data, scaled_date_score], axis=1)
-
-# data = data.drop(list(data.filter(regex="field")), axis=1)
-# data = data.drop(list(data.filter(regex="goal")), axis=1)
-# data = data.drop(list(data.filter(regex="race")), axis=1)
-# data = data.drop(list(data.filter(regex="2_1")), axis=1)
-# data = data.drop(list(data.filter(regex="1_1")), axis=1)
-
-
-
-
-##%% Check to see what the different genders value most on paper
-#from Plots import PlotBarSeries
-#male_rows = data[data['gender'] == 1]
-#female_rows = data[data["gender"] == 0]
-#male_avg = male_rows.mean()
-#female_avg = female_rows.mean()
-#
-#self_look_for_before_average_male = male_avg[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
-#self_look_for_before_average_female = female_avg[['attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1']]
-#dataframe = pd.concat([self_look_for_before_average_male, self_look_for_before_average_female],axis=1).T
-#dataframe.index = ["male", "female"]
-#PlotBarSeries(dataframe, "Mean value","Attribute value mean by gender (round 1_1)")
-#
-#
-##%% Mean values by attribute for dec = 1
-#all_dec_1_male = data[(data["dec"] == 1) & (data["gender"] == 1)]
-#all_dec_1_female = data[(data["dec"] == 1) & (data["gender"] == 0)]
-#
-#attrs = ['attr', 'sinc', 'intel', 'fun', 'amb', 'shar']
-#
-#male_attrs_dec_avg = all_dec_1_male[attrs]
-#female_attrs_dec_avg = all_dec_1_female[attrs]
-#dataframe = pd.concat([male_attrs_dec_avg.mean(), female_attrs_dec_avg.mean()], axis=1).T
-#dataframe.index = ["male", "female"]
-#PlotBarSeries(dataframe, "Score mean value", "Date score mean value for dec=1")
-#
-#all_dec_0_male = data[(data["dec"] == 0) & (data["gender"] == 1)]
-#all_dec_0_female = data[(data["dec"] == 0) & (data["gender"] == 0)]
-#
-#male_attrs_dec_avg = all_dec_0_male[attrs]
-#female_attrs_dec_avg = all_dec_0_female[attrs]
-#dataframe = pd.concat([male_attrs_dec_avg.mean(), female_attrs_dec_avg.mean()], axis=1).T
-#dataframe.index = ["male", "female"]
-#PlotBarSeries(dataframe, "Score mean value", "Date score mean value for dec=0")
-#
-##%% Mean values by attribute for dec = 1 compared to what men/women say they want
-#
-#
-#
-##%%Yes vs no scores
-#from Plots import PlotHeatmap
-#dec_yes = data[data["dec"] == 1]
-#dec_no = data[data["dec"] == 0]
-#dec_yes_attr = dec_yes[attrs + ["like"]]
-#dec_no_attr = dec_no[attrs + ["like"]]
-#dec_yes_mean = pd.DataFrame(dec_yes_attr.mean()).T
-#dec_yes_mean.index = ["Yes"]
-#dec_no_mean = pd.DataFrame(dec_no_attr.mean()).T
-#dec_no_mean.index = ["No"]
-#df = pd.concat([dec_yes_mean, dec_no_mean], axis=0)
-#PlotBarSeries(df, "Mean rating", "Mean rating of partner for yes and no")
-#
-#corr_yes = dec_yes_attr.corr()
-#corr_no = dec_no_attr.corr()
-#PlotHeatmap(corr_yes, "Yes", 0, 1)
-#PlotHeatmap(corr_no, "No", 0, 1)
-#
-#
-##%% Check to see if you can predict your own score accurately. Which score predicts better? Prior or during the speed dating event?
-#attrs = ['attr', 'sinc', 'intel', 'fun', 'amb']
-#diff_scores = pd.DataFrame()
-#for i in np.arange(552):
-#    #Get rows for current participant
-#    rows = data[data["iid"] == i]
-#    self_score_1 = pd.DataFrame(rows[list(rows.filter(regex="3_1"))].mean()).T
-#    my_score = pd.DataFrame(rows[[attr + "_o" for attr in attrs]].mean()).T
-#    self_score_diff = self_score_1 - my_score.values
-#    result = pd.concat([self_score_diff], axis=1)
-#    diff_scores = pd.concat([diff_scores, result], axis=0)
-#    
-#diff_scores_mean = diff_scores.mean()
-#df = pd.DataFrame([diff_scores_mean])
-#
-#df.index = ["3_1"]
-#df.columns = attrs
-#
-#PlotBarSeries(df, "Mean difference", "Attribute score prediction for 3_1")
-#
-##%%Does the number of dec=1 impact the way you feel about yourself?
-#
-#
-##%% Does int_corr correlate with shar? or are we not able to evaluate shared interests in 4 minutes?
-#int_corr = data[["int_corr"]]
-#shar = data[["shar", "shar_o"]]
-#df = pd.concat([int_corr, shar], axis=1)
-#corr = df.corr()
-#PlotHeatmap(corr, "Shared interests", 0, 1)
-#
-##%%How good are we at predicting the other persons answer
-#dec_yes_other = data[data["dec_o"] == 1]
-#dec_no_other = data[data["dec_o"] == 0]
-#dec_yes = data[data["dec"] == 1]
-#dec_no = data[data["dec"] == 0]
-#
-#dec_yes_other_prob_mean = dec_yes_other["prob"].mean()
-#dec_no_other_prob_mean = dec_no_other["prob"].mean()
-#
-#dec_yes_prob_mean = dec_yes["prob"].mean()
-#dec_no_prob_mean = dec_no["prob"].mean()
-#
-#df = pd.DataFrame([[dec_yes_prob_mean, dec_yes_other_prob_mean], [dec_no_prob_mean, dec_no_other_prob_mean]], columns=["Own decision", "Other decision"], index=["Yes", "No"])
-#PlotBarSeries(df,"prob mean-value" ,"Average probability for other say yes for dec=yes and dec=no")
     
 
 from sklearn.model_selection import train_test_split
@@ -230,57 +106,7 @@ X_train_all, X_test_all, y_train_all, y_test_all = train_test_split(features_all
 X_train_all, X_valid_all, y_train_all, y_valid_all = train_test_split(X_train_all, y_train_all, test_size=0.15, random_state=42)
 
 
-#%%For both genders with same model
-#from sklearn.model_selection import GridSearchCV
-#
-#from keras.models import Sequential
-#from keras.layers import Dropout, Dense, Input
-#from time import time 
-#
-#
-#model = Sequential([
-#    Input(shape=input_shape),
-#    Dropout(rate=0.05),
-#    Dense(300, activation="relu"),
-#    Dropout(rate=0.2),
-#    Dense(100, activation="relu"),
-#    Dense(1, kernel_initializer="normal", activation="sigmoid")
-#])
-#
-## Configure the model and start training
-## Optimizer (pick the right one)
-## batch_size=10, 
-#
-#model.compile(loss='binary_crossentropy', optimizer="rmsprop", metrics=['binary_crossentropy', 'accuracy', "mean_squared_error"])
-#
-#epochs = np.linspace(20, 150, 5)
-#batch_size = np.linspace(10, 100, 5)
-#param_grid = dict(epochs=epochs, batch_size=batch_size)
-#start = time()
-#random_search = GridSearchCV(estimator=model, param_grid=param_grid, scoring="accuracy", n_jobs=-1)
-#random_search.fit(X_train_all_scaled, y_train_all)
-#t = time()-start
-
-
-#history = model.fit(X_train_all_scaled, y_train_all, epochs=60, batch_size=20, verbose=0, validation_data=(X_valid_all_scaled, y_valid_all), use_multiprocessing=True)
-
-
-#pd.DataFrame(history.history).plot(figsize=(8, 5))
-#plt.grid(True)
-#plt.gca().set_ylim(0, 1) # set the vertical range to [0-1]
-#plt.show()
-#
-#mse_train = model.evaluate(X_train_all_scaled, y_train_all)
-#mse_val = model.evaluate(X_valid_all_scaled, y_valid_all)
-## Testing
-#mse_test = model.evaluate(X_test_all_scaled, y_test_all)
-#X_new = X_test_all[:20]
-#y_proba = model.predict(X_new)
-#
-##%%
-#pred_dec = model.predict(X_train_all_scaled)
-
-#%% Find optimale lear
+#%% Find optimale learning rate
 from ParamTuning import build_keras_model
 from keras.wrappers.scikit_learn import KerasClassifier
 from time import time
@@ -289,8 +115,6 @@ from keras.callbacks import EarlyStopping, LearningRateScheduler
 import math
 
 input_shape = X_train_all.shape[1:]
-#hidden_layers = [(300,100,50), (100,20,30), (300,50,50,50)]
-#dropout = [(0,0.2,0.2), (0.1,0.4,0.4), (0.4,0.3,0.3)]
 models = []
 model_keras = KerasClassifier(
             build_fn = build_keras_model, 
@@ -300,9 +124,7 @@ model_keras = KerasClassifier(
             n_class=1, 
             optimizer=Adam(learning_rate=10**-5),
             default_dropout=0.2)
-# specify other extra parameters pass to the .fit
-# number of epochs is set to a large number, we'll
-# let early stopping terminate the training process
+
 epochs = 100
 def my_learning_rate(epoch, lr):
     return lr * np.exp(np.log(10**6)/epochs)
@@ -311,7 +133,7 @@ lrs = LearningRateScheduler(my_learning_rate)
 results = []
 
 start = time()
-early_history = model_keras.fit(X_train_all, y_train_all, epochs=epochs, callbacks=[lrs], validation_data=(X_valid_all, y_valid_all), verbose=0, batch_size=100)
+early_history = model_keras.fit(X_train_all, y_train_all, epochs=epochs, callbacks=[lrs], validation_data=(X_valid_all, y_valid_all), verbose=0, batch_size=500)
 t = time()-start
 results.append(early_history)
 history = pd.DataFrame(early_history.history)
@@ -352,10 +174,10 @@ input_shape = X_train_all.shape[1:]
 
 from ParamTuning import build_keras_model
 models = []
-# hidden_layers = [(200,200),(300,100)]
-# hidden_layers = [(300,100)]
-hidden_layers = [(2000,1000,500,300,100, 50), (1000,500,300,100,50)]
-dropout_rates = [0.3]
+hidden_layers = [(200,200),(300,300)]
+# hidden_layers = [(1000,500,300,100,50)]
+hidden_layers = [(1000,500,300,100,50)]
+dropout_rates = [0.25]
 for layer in hidden_layers:
     for dropout_rate in dropout_rates:
         model_keras = build_keras_model(
@@ -387,7 +209,7 @@ results = []
 
 for model in models: 
     start = time()
-    early_history = model.fit(X_train_all, y_train_all, epochs=epochs, callbacks=[early_stop, lrate], validation_data=(X_valid_all, y_valid_all), verbose=1, batch_size=10, n_jobs=-1)
+    early_history = model.fit(X_train_all, y_train_all, epochs=epochs, callbacks=[early_stop, lrate], validation_data=(X_valid_all, y_valid_all), verbose=1, batch_size=10)
     t = time()-start
     results.append(early_history)
     
@@ -456,7 +278,7 @@ PlotConfusionMatrix(cf_matrix_test_acc.astype(np.float64, copy=False), title="Te
 PlotConfusionMatrix(cf_matrix_test_loss.astype(np.float64, copy=False), title="Test loss")
 
 
-#%% Plot confusuio matrix
+#%% Plot confusion matrix
 from Plots import PlotPerformanceMatrix
 for model in models:
     y_pred = model.predict(X_test_all)
@@ -464,12 +286,39 @@ for model in models:
     y_pred = y_pred.round()
     PlotPerformanceMatrix(y_pred, y_test_all)
 
+#%%
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import RandomizedSearchCV
+from scipy.stats import randint
+from Plots import PlotPerformanceMatrix
+
+param_distribs = {
+        'n_estimators': randint(low=1, high=300),
+        'max_features': randint(low=1, high=50),
+    }
+
+forest_reg = RandomForestRegressor(random_state=42)
+
+rnd_search = RandomizedSearchCV(forest_reg, param_distributions=param_distribs, n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
+rnd_search.fit(X_train_all, y_train_all)
+
+rnd_search.best_estimator_
+forest_reg = rnd_search.best_estimator_
+
+# scores = cross_val_score(forest_reg, X_train_all, y_train_all, scoring="neg_mean_squared_error", cv=10)
+# display_scores(-scores, forest_reg)
+
+
 #%%Plot
-from Plots import PlotClasswiseSeries
+from Plots import PlotClasswiseSeries2
+y_pred2 = forest_reg.predict(X_test_all)
 model = models[0]
-y_pred = model.predict(X_test_all)
-y_pred = y_pred[:,0]
-PlotClasswiseSeries(y_pred, y_test_all)
+y_pred1 = model.predict(X_test_all)
+y_pred1 = y_pred1[:,0]
+num_outliers = sum(((y_pred1 > 0.6) & (y_test_all == 0)) | ((y_pred1 < 0.4) & (y_test_all == 1)))
+PlotClasswiseSeries2(y_pred1, y_pred2, y_test_all)
 
 #%% Cross val score
 from sklearn.model_selection import cross_val_score
@@ -477,47 +326,6 @@ scores = []
 for index, model in enumerate(models):
     score = cross_val_score(model, X_train_all, y_train_all, scoring="neg_mean_squared_error")
     scores[index] = score
-#%%
-#    # Load the dataset
-## Create model for KerasClassifier
-#def create_model(hparams1=dvalue,
-#                 hparams2=dvalue,
-#                 ...
-#                 hparamsn=dvalue):
-#    # Model definition
-#    ...
-#
-#model = KerasClassifier(build_fn=create_model) 
-#
-## Specify parameters and distributions to sample from
-#hparams1 = randint(1, 100)
-#hparams2 = ['elu', 'relu', ...]
-#...
-#hparamsn = uniform(0, 1)
-#
-## Prepare the Dict for the Search
-#param_dist = dict(hparams1=hparams1, 
-#                  hparams2=hparams2, 
-#                  ...
-#                  hparamsn=hparamsn)
-#
-## Search in action!
-#n_iter_search = 16 # Number of parameter settings that are sampled.
-#random_search = RandomizedSearchCV(estimator=model, 
-#                                   param_distributions=param_dist,
-#                                   n_iter=n_iter_search,
-#                                   n_jobs=, 
-#								   cv=, 
-#								   verbose=)
-#random_search.fit(X, Y)
-#
-## Show the results
-#print("Best: %f using %s" % (random_search.best_score_, random_search.best_params_))
-#means = random_search.cv_results_['mean_test_score']
-#stds = random_search.cv_results_['std_test_score']
-#params = random_search.cv_results_['params']
-#for mean, stdev, param in zip(means, stds, params):
-#    print("%f (%f) with: %r" % (mean, stdev, param))
 
 #%% Display scores
 

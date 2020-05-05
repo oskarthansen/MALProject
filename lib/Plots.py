@@ -138,4 +138,32 @@ def PlotClasswiseSeries(y_pred, y_true):
     ax.set_title('Predicted values for dec')
     plt.show()
 
+def PlotClasswiseSeries2(y_pred1, y_pred2, y_true):
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    df = pd.DataFrame({
+        'y_pred1': y_pred1,
+        'y_pred2': y_pred2,
+        'y_true': y_true
+        })
+    fig=plt.figure()
+    ax=fig.add_axes([0,0,1,1])
+    z = df[['y_true']].to_numpy().astype(int)
+    colors = ["#0000ff", "#ff0000"]
+    c = [colors[i] for i in z[:,0]]
+    x = df[['y_pred1']].to_numpy()
+    y = df[['y_true']].to_numpy()
+    ax.scatter(x, y, c=c, marker='x', alpha=0.2)
     
+    colors = ["#00ff00", "#ff00ff"]
+    c = [colors[i] for i in z[:,0]]
+    x = df[['y_pred2']].to_numpy()
+    #Add offset
+    y = df[['y_true']].to_numpy()
+    y = y + 0.2
+    ax.scatter(x, y, c=c, marker='x', alpha=0.2)
+    ax.set_xlabel('Predicted value')
+    ax.set_ylabel('True value')
+    ax.set_title('Predicted values for dec')
+    plt.show()

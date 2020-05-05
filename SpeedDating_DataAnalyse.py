@@ -186,10 +186,6 @@ dataframe = pd.concat([male_attrs_dec_avg.mean(), female_attrs_dec_avg.mean()], 
 dataframe.index = ["male", "female"]
 PlotBarSeries(dataframe, "Score mean value", "Date score mean value for dec=0", [0,10])
 
-#%% Mean values by attribute for dec = 1 compared to what men/women say they want
-
-
-
 #%%Yes vs no scores
 from Plots import PlotHeatmap
 dec_yes = data[data["dec"] == 1]
@@ -227,9 +223,7 @@ df = pd.DataFrame([diff_scores_mean])
 df.index = ["3_1"]
 df.columns = attrs
 
-PlotBarSeries(df, "Mean difference", "Attribute score prediction for 3_1")
-
-#%%Does the number of dec=1 impact the way you feel about yourself?
+PlotBarSeries(df, "Mean difference", "Attribute score prediction for 3_1", [0,2.5])
 
 
 #%% Does int_corr correlate with shar? or are we not able to evaluate shared interests in 4 minutes?

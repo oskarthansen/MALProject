@@ -27,7 +27,6 @@ def build_keras_model(hidden_layers = [64, 64, 64], dropout_rate = [],
             
     model.add(Dense(n_class))
     model.add(Activation('sigmoid'))
-    
     loss = 'mean_squared_error'
     model.compile(loss = loss, optimizer=optimizer, metrics=metrics)   
     return model
